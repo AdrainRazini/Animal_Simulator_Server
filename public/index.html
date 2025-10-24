@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Adicionar IDs</title>
+</head>
+<body>
+  <h1>Adicionar ID de Música</h1>
+  <form id="musicForm">
+    <input type="text" id="musicId" placeholder="Digite o ID" required>
+    <button type="submit">Adicionar</button>
+  </form>
+
+  <h2>IDs salvos:</h2>
+  <ul id="musicsList"></ul>
+
+  <script>
+    const form = document.getElementById("musicForm");
+    const musicsList = document.getElementById("musicsList");
+
+    async function loadMusics() {
+      const res = await fetch("/api/musics");
+      const musics = await res.json();
+      musicsList.innerHTML = "";
+      musics.forEach(id => {
+        const li = document.createElement("li");
+        li.textContent = id;
+        musicsList.appendChild(li);
+      });
+    }
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      const id = document.getElementById("musicId").value.trim();
+      if (!id) return;
+      await fetch("/api/musics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+      document.getElementById("musicId").value = "";
+      loadMusics();
+    });
+
+    loadMusics();
+  </script>
+</body>
+</html>
