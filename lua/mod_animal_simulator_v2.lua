@@ -50,7 +50,7 @@ else
 	-- Tenta baixar remoto
 	local HttpService = game:GetService("HttpService")
 	local ok, err = pcall(function()
-		local code = game:HttpGet("https://raw.githubusercontent.com/AdrainRazini/mastermod/refs/heads/main/module/dataGui.lua")
+		local code = game:HttpGet("https://animal-simulator-server.vercel.app/lua/DataGui.lua")
 		Regui = loadstring(code)()
 	end)
 
