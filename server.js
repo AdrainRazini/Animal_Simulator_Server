@@ -1,10 +1,16 @@
 // ====================
 // 🌐 Servidor Principal Unificado
 // ====================
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const fs = require("fs");
+import express from "express";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import { collection, getDocs, addDoc } from "firebase/firestore";
+import { db } from "./firebase.js";
+
+// Corrigir __dirname em ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -25,49 +31,52 @@ app.use("/lua", express.static(path.join(__dirname, "lua")));
 app.use(express.static(path.join(__dirname, "public")));
 
 // ====================
-// 🎵 API: Gerenciar IDs de músicas
+// 🎵 API: Gerenciar IDs de músicas (Firebase)
 // ====================
-const musicsFile = path.join(__dirname, "data/musics.json");
-
-// Lê o arquivo JSON de IDs
-function readMusics() {
-  if (!fs.existsSync(musicsFile)) return [];
-  try {
-    const data = fs.readFileSync(musicsFile, "utf-8");
-    const parsed = JSON.parse(data);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error("❌ Erro ao ler JSON:", err);
-    return [];
-  }
-}
-
-// Salva os IDs
-function saveMusics(list) {
-  fs.writeFileSync(musicsFile, JSON.stringify(list, null, 2), "utf-8");
-}
 
 // ➕ Adicionar um novo ID
-app.post("/api/musics", (req, res) => {
+app.post("/api/musics", async (req, res) => {
   const id = req.body.id || req.body.texto;
+
   if (!id) return res.status(400).json({ error: "Campo 'id' é obrigatório" });
 
-  const musics = readMusics();
-
-  if (!musics.includes(id)) {
-    musics.push(id);
-    saveMusics(musics);
-    console.log("📩 Novo ID adicionado:", id);
-  } else {
-    console.log("⚠️ ID duplicado ignorado:", id);
+  // Verifica se id contém apenas números
+  if (!/^\d+$/.test(id)) {
+    return res.status(400).json({ error: "O campo 'id' deve conter apenas números" });
   }
 
-  res.json({ success: true, total: musics.length, musics });
+  const numericId = Number(id); // converte para número
+
+  try {
+    // Busca todos os IDs existentes
+    const snapshot = await getDocs(collection(db, "musics"));
+    const exists = snapshot.docs.some(doc => doc.data().id === numericId);
+
+    if (exists) {
+      return res.status(400).json({ error: "ID já existe" });
+    }
+
+    // Adiciona no Firestore
+    await addDoc(collection(db, "musics"), { id: numericId });
+    console.log("📩 Novo ID adicionado:", numericId);
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Erro ao salvar no Firestore:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
+
 // 📜 Listar todos os IDs
-app.get("/api/musics", (req, res) => {
-  res.json(readMusics());
+app.get("/api/musics", async (req, res) => {
+  try {
+    const snapshot = await getDocs(collection(db, "musics"));
+    const list = snapshot.docs.map(doc => doc.data().id);
+    res.json(list);
+  } catch (err) {
+    console.error("❌ Erro ao ler do Firestore:", err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ====================
