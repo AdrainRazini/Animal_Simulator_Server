@@ -1,0 +1,520 @@
+local MarketplaceService = game:GetService("MarketplaceService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local PlayerGui = player:WaitForChild("PlayerGui")
+local GuiName = "Mod_Animal_Simulator_BoxMusic_" .. player.Name
+
+-- Lista de IDs
+local Listaid = {
+	91233243522140,
+	116874163291138,
+	114727662968481,
+	98337901681441,
+	102402883551679,
+	122761529841977,
+	87909146687252,
+	127512475318182,
+	119936139925486,
+	105854178411388,
+	87233041213837,
+	121516877792091,
+	85833437298815,
+	94494416095572,   -- Ghost fight
+	115656438192853,  -- A Engimatical Encounter
+	96357207714662,   -- Stronger Twan ya chara
+	107986977620509,  -- Asgore
+	101378669026310,  -- The Skeletons Last Breath
+	109606503605402,  -- Hammer of Justice
+	112512564227744,
+	104621031886653,
+	83914052148279,
+	117236780703437,
+	81552567379452,
+	123809083385992,
+	112748273890049,
+	137155874195108,
+	106958630419629,
+	72320758533508,
+	127063071194532,
+	139667113842953,
+	90627119202018,
+	118507373399694,
+	93058983119992,
+	92295159623916,  -- DJ Raimundo
+	139218946376655, -- Rat Dance
+	97567416166163,
+	106732317934236,
+	17647322226,     -- Kerosene
+	132517043416676,
+	15689448519,
+	16190782786,
+	1837006787,
+	1837014531,
+	131847084942844,
+	95046091312570,
+	111318048787674,
+	93958751571254,
+	120102995443063,
+	120138115344262,
+	104575671082804,
+	131689610122547,
+	13530439660,
+	14366981664,
+	16831107981,
+	129112111571462,
+	15689445424,
+	15689450026,
+	126713629899826,
+	77766610441787,
+	18841891575,
+	120871403922972,
+	95554192381753,
+	126372814380356,
+	123517126955383,
+	105102042077619,
+	92715012838361,
+	84053362849165,
+	75146085667327,
+	86511617909610,
+	16190783444,
+	100697759026652,
+	127868004681532,
+	1839246711,
+	103504594968244,
+	80946196913756,
+	93751275110337,
+	109840843335222,
+	110035574248336,
+	104567749101480,
+	18841888868,
+	85075816659415,
+	96028783423401,
+	125200420795517,
+	92446612272052,
+	107683146338584,
+	79953696595578,
+	129212629624727,
+	87554448466409,
+	121489264497741, -- Adn 01
+	70961757130479,
+	97413868131214,
+	93245387354226,
+	72444649335619,
+	1837111443,
+	5410084802,
+	103524199324615,
+	127219133263020,
+	100697759026652,
+	120885023497936,
+	5410082468,
+	1836847994,
+	71392021424658,
+	86685635786943,
+	76312991186384,
+	81700399219236, -- Adn 2
+	88339486019486, 
+	96974354995715, 
+	139693447546059, 
+	131847084942844, 
+	104828343009296,
+	111564073986749, -- Adn 3
+	85994915142182,
+	99128910197696, -- Adn 4
+	135690618125311,
+	105633366460252,
+	113324443761127,
+	105423792227242,
+	71956674693421, -- Adn 5
+	120785124326826,
+	126257401176561,
+	132082397247824,
+	78744747224727, -- Adn 6 
+	77188110491285,
+	87658459636001,
+	108710061480904,
+	123580060732562,
+	104449595639237,
+	97557092981429,
+	74312901272425,
+	75982342509801,
+	75805949198978,
+	113184121463834,
+	122127808613347,
+	110772573905578,
+	1836654054,
+	95554192381753,
+	139834501955751,
+	104596909675653,
+	72811197789142,
+	1836789357,
+	1836654190,
+	123229005251213,
+}
+
+-- Carrega o módulo Regui
+local Regui
+-- 1️⃣ Tenta carregar localmente
+local success, module = pcall(function()
+	return require(script.Parent:FindFirstChild("Mod_UI"))
+end)
+
+if success and module then
+	Regui = module
+	print("[✅ Mod Loader] Carregado localmente com sucesso!")
+else
+	-- 2️⃣ Tenta baixar remoto
+	local ok, code
+	local urls = {
+		"https://raw.githubusercontent.com/AdrainRazini/mastermod/refs/heads/main/module/dataGui.lua",
+		"https://animal-simulator-server.vercel.app/lua/DataGui.lua"
+	}
+
+	for _, url in ipairs(urls) do
+		local okHttp, result = pcall(function()
+			return game:HttpGet(url)
+		end)
+		if okHttp and result and result ~= "" then
+			code = result
+			print("[🌐 Mod Loader] Código baixado de: " .. url)
+			break
+		else
+			warn("[⚠️ Mod Loader] Falha ao baixar de:", url)
+		end
+	end
+
+	-- 3️⃣ Executa o código remoto se baixado
+	if code then
+		local okLoad, result = pcall(function()
+			return loadstring(code)() 
+		end)
+		if okLoad and result then
+			Regui = result
+			print("[✅ Mod Loader] Módulo remoto carregado com sucesso!")
+		else
+			warn("[❌ Mod Loader] Erro ao executar código remoto:", result)
+		end
+	else
+		warn("[❌ Mod Loader] Nenhuma das fontes pôde ser carregada.")
+	end
+end
+
+assert(Regui, "Regui não foi carregado!")
+
+
+
+-- Impede duplicação da GUI
+if PlayerGui:FindFirstChild(GuiName) then
+	Regui.Notifications(PlayerGui, {Title="Alert", Text="Neutralized Code", Icon="fa_rr_information", Tempo=10})
+	return
+end
+
+-- Configuração de som via evento remoto
+local playEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("PLAYEvent")
+
+-- Índice da faixa atual
+local currentIndex = 1
+local isPlaying = false
+local Loading = false
+
+--==========================--
+-- GUI PRINCIPAL
+--==========================--
+local GL1 = {}
+local Data_Icon = Regui.Icons
+
+GL1["Scren"] = Instance.new("ScreenGui")
+GL1["Scren"].Parent = PlayerGui
+GL1["Scren"].Name = GuiName
+
+GL1["frame"] = Instance.new("Frame")
+GL1["frame"].Parent = GL1["Scren"]
+GL1["frame"].Size = UDim2.new(0, 350, 0, 120)
+GL1["frame"].Position = UDim2.new(0.5, -175, 0.8, -60)
+GL1["frame"].BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+
+
+-- Top bar
+GL1["TopBar"] = Instance.new("Frame")
+GL1["TopBar"].Parent = GL1["frame"]
+GL1["TopBar"].Size = UDim2.new(1, 0, 0, 25) -- altura de 25 pixels
+GL1["TopBar"].Position = UDim2.new(0, 0, 0, 0)
+GL1["TopBar"].BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+
+-- Texto do topo
+GL1["TopBar_Label"] = Instance.new("TextLabel")
+GL1["TopBar_Label"].Parent = GL1["TopBar"]
+GL1["TopBar_Label"].Size = UDim2.new(1, -30, 1, 0) -- deixa espaço para botão de minimizar
+GL1["TopBar_Label"].Position = UDim2.new(0, 5, 0, 0)
+GL1["TopBar_Label"].BackgroundTransparency = 1
+GL1["TopBar_Label"].Text = "Player Music"
+GL1["TopBar_Label"].TextColor3 = Color3.fromRGB(255,255,255)
+GL1["TopBar_Label"].TextScaled = true
+
+
+-- Botão de minimizar o player
+GL1["MinimizeBtn"] = Instance.new("TextButton")
+GL1["MinimizeBtn"].Parent = GL1["TopBar"]
+GL1["MinimizeBtn"].Size = UDim2.new(0, 25, 1, 0)
+GL1["MinimizeBtn"].Position = UDim2.new(1, -25, 0, 0)
+GL1["MinimizeBtn"].BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+GL1["MinimizeBtn"].Text = "-"
+GL1["MinimizeBtn"].TextColor3 = Color3.fromRGB(255,255,255)
+GL1["MinimizeBtn"].TextScaled = true
+GL1["MinimizeBtn"].Font = Enum.Font.GothamBold
+
+-- Botão de minimizar a lista lateral (fica à esquerda do botão do player)
+GL1["MinimizeBtn_List"] = Instance.new("TextButton")
+GL1["MinimizeBtn_List"].Parent = GL1["TopBar"]
+GL1["MinimizeBtn_List"].Size = UDim2.new(0, 25, 1, 0)
+GL1["MinimizeBtn_List"].Position = UDim2.new(1, -55, 0, 0) -- deslocado 30 pixels para a esquerda
+GL1["MinimizeBtn_List"].BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+GL1["MinimizeBtn_List"].Text = "-"
+GL1["MinimizeBtn_List"].TextColor3 = Color3.fromRGB(255,255,255)
+GL1["MinimizeBtn_List"].TextScaled = true
+GL1["MinimizeBtn_List"].Font = Enum.Font.GothamBold
+
+
+
+-- Frame lateral (lista à direita)
+GL1["frame_List"] = Instance.new("Frame")
+GL1["frame_List"].Parent = GL1["frame"]
+GL1["frame_List"].Size = UDim2.new(0, 150, 1, 0)  -- mesma altura do frame principal
+GL1["frame_List"].Position = UDim2.new(1, 5, 0, 0) -- 5 pixels de distância ao lado direito
+GL1["frame_List"].BackgroundColor3 = Color3.fromRGB(55, 55, 55)
+GL1["frame_List"].BorderSizePixel = 0
+GL1["frame_List"].Visible = false
+
+GL1["Loading_Icon"] = Instance.new("ImageLabel")
+GL1["Loading_Icon"].Parent = GL1["frame_List"]
+GL1["Loading_Icon"].Size = UDim2.new(0, 80, 0, 80)
+GL1["Loading_Icon"].AnchorPoint = Vector2.new(0.5, 0.5)
+GL1["Loading_Icon"].Position = UDim2.new(0.5, 0, 0.5, 0)
+GL1["Loading_Icon"].Image = Data_Icon.fa_bx_loader
+GL1["Loading_Icon"].BackgroundTransparency = 1
+
+GL1["Name_id"] = Instance.new("TextLabel")
+GL1["Name_id"].Parent = GL1["frame"]
+GL1["Name_id"].Size = UDim2.new(1, 0, 0, 25) -- ocupa toda a largura do frame
+GL1["Name_id"].Position = UDim2.new(0, 0, 0, -25) -- logo acima do frame (ou dentro se quiser)
+GL1["Name_id"].BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+GL1["Name_id"].TextColor3 = Color3.fromRGB(255, 255, 255)
+GL1["Name_id"].TextScaled = true
+GL1["Name_id"].Text = "♪ Tocando: (nenhuma faixa)"
+--GL1["Name_id"].Font = Enum.Font.GothamSemibold
+
+
+
+-- Ícone do CD
+GL1["CD_Icon"] = Instance.new("ImageLabel")
+GL1["CD_Icon"].Parent = GL1["frame"]
+GL1["CD_Icon"].Size =  UDim2.new(0, 60, 0, 60)
+GL1["CD_Icon"].Position = UDim2.new(0, 10, 0.5, -30)
+GL1["CD_Icon"].Image = "rbxassetid://70716433051234"
+GL1["CD_Icon"].BackgroundTransparency = 1
+
+-- Botões
+GL1["Input_Angle_L"] = Instance.new("ImageButton")
+GL1["Input_Angle_L"].Parent = GL1["frame"]
+GL1["Input_Angle_L"].Size =  UDim2.new(0, 50, 0, 50)
+GL1["Input_Angle_L"].Position = UDim2.new(0, 150, 0.5, -25)
+GL1["Input_Angle_L"].BackgroundTransparency = 1
+GL1["Input_Angle_L"].Image = Data_Icon.fa_rr_angle_left
+
+GL1["Input_Bnt"] = Instance.new("ImageButton")
+GL1["Input_Bnt"].Parent = GL1["frame"]
+GL1["Input_Bnt"].Size = UDim2.new(0, 50, 0, 50)
+GL1["Input_Bnt"].Position = UDim2.new(0, 200, 0.5, -25)
+GL1["Input_Bnt"].BackgroundTransparency = 1
+GL1["Input_Bnt"].Image = Data_Icon.fa_bx_play_circle
+
+GL1["Input_Angle_R"] = Instance.new("ImageButton")
+GL1["Input_Angle_R"].Parent = GL1["frame"]
+GL1["Input_Angle_R"].Size =  UDim2.new(0, 50, 0, 50)
+GL1["Input_Angle_R"].Position = UDim2.new(0, 250, 0.5, -25)
+GL1["Input_Angle_R"].BackgroundTransparency = 1
+GL1["Input_Angle_R"].Rotation = 180
+GL1["Input_Angle_R"].Image = Data_Icon.fa_rr_angle_left
+
+
+
+--==========================--
+-- FUNÇÕES PRINCIPAIS
+--==========================--
+
+local function playCurrentTrack(selectedObj)
+	local id
+
+	-- Se veio do seletor, use o ID dele
+	if selectedObj then
+		id = selectedObj
+	else
+		-- Caso contrário, use o índice atual
+		id = Listaid[currentIndex]
+	end
+
+	if not id then return end
+
+	-- Envia para o servidor tocar a música
+	playEvent:FireServer(id)
+
+	-- Busca informações da música no catálogo Roblox
+	local success, info = pcall(function()
+		return MarketplaceService:GetProductInfo(id)
+	end)
+
+	-- Atualiza o texto do rótulo
+	if success and info and info.Name then
+		GL1["Name_id"].Text = "♪ Tocando: " .. info.Name
+	else
+		GL1["Name_id"].Text = "♪ Tocando: Faixa " .. tostring(currentIndex)
+	end
+
+	isPlaying = true
+	GL1["Input_Bnt"].Image = Data_Icon.fa_bx_pause_circle
+end
+
+
+local function pauseTrack()
+	playEvent:FireServer("0") -- Envia sinal para parar o som
+	GL1["Name_id"].Text = "⏸️ Pausado"
+	isPlaying = false
+	GL1["Input_Bnt"].Image = Data_Icon.fa_bx_play_circle
+end
+
+
+-- Clique Play/Pause
+GL1["Input_Bnt"].MouseButton1Click:Connect(function()
+	if isPlaying then
+		pauseTrack()
+	else
+		playCurrentTrack()
+	end
+end)
+
+-- Botão anterior
+GL1["Input_Angle_L"].MouseButton1Click:Connect(function()
+	currentIndex -= 1
+	if currentIndex < 1 then
+		currentIndex = #Listaid
+	end
+	playCurrentTrack()
+end)
+
+-- Botão próxima
+GL1["Input_Angle_R"].MouseButton1Click:Connect(function()
+	currentIndex += 1
+	if currentIndex > #Listaid then
+		currentIndex = 1
+	end
+	playCurrentTrack()
+end)
+
+
+local isMinimized = false
+local isMinimized_L = true
+
+-- Minimizar o player inteiro
+GL1["MinimizeBtn"].MouseButton1Click:Connect(function()
+	isMinimized = not isMinimized
+	GL1["CD_Icon"].Visible = not isMinimized
+	GL1["Input_Angle_L"].Visible = not isMinimized
+	GL1["Input_Bnt"].Visible = not isMinimized
+	GL1["Input_Angle_R"].Visible = not isMinimized
+	GL1["Name_id"].Visible = not isMinimized
+	GL1["frame_List"].Visible = not isMinimized_L -- mantém visibilidade da lista separada
+
+	-- Reduz ou aumenta altura do frame
+	if isMinimized then
+		GL1["frame"].Size = UDim2.new(0, 350, 0, 25)
+	else
+		GL1["frame"].Size = UDim2.new(0, 350, 0, 120)
+	end
+end)
+
+-- Minimizar apenas a lista lateral
+GL1["MinimizeBtn_List"].MouseButton1Click:Connect(function()
+	isMinimized_L = not isMinimized_L
+	GL1["frame_List"].Visible = not isMinimized_L
+end)
+
+--==========================--
+-- EFEITOS VISUAIS
+--==========================--
+Regui.applyCorner(GL1["frame"])
+Regui.applyDraggable(GL1["frame"], GL1["frame"])
+
+-- Hover
+local function applyHover(button)
+	button.MouseEnter:Connect(function()
+		button.ImageTransparency = 0.2
+	end)
+	button.MouseLeave:Connect(function()
+		button.ImageTransparency = 0
+	end)
+end
+
+applyHover(GL1["Input_Bnt"])
+applyHover(GL1["Input_Angle_L"])
+applyHover(GL1["Input_Angle_R"])
+
+-- Rotação do CD
+RunService.RenderStepped:Connect(function(dt)
+	-- Rotação do CD
+	if isPlaying then
+		GL1["CD_Icon"].Rotation = (GL1["CD_Icon"].Rotation + dt * 60) % 360
+	end
+
+	-- Rotação do Loading
+	if Loading then
+		GL1["Loading_Icon"].Visible = true
+		GL1["Loading_Icon"].Rotation = (GL1["Loading_Icon"].Rotation + dt * 120) % 360 -- você pode deixar mais rápido que o CD
+		GL1["frame_List"].Transparency = 1
+	else
+		GL1["Loading_Icon"].Visible = false
+	end
+end)
+
+
+-- Função para criar a lista de nomes
+local function getnamesbox(list)
+	local newList = {}
+
+	for _, id in ipairs(list) do
+		local success, info = pcall(function()
+			return MarketplaceService:GetProductInfo(id)
+		end)
+
+		if success and info then
+			table.insert(newList, {name = info.Name, Obj = tostring(id)})
+		else
+			table.insert(newList, {name = "???", Obj = tostring(id)})
+		end
+	end
+
+	return newList
+end
+
+-- Preenche a lista
+local Lista_N
+task.spawn(function()
+	Loading = true
+	Lista_N = getnamesbox(Listaid)
+
+	-- Agora que a lista está pronta, cria o seletor
+	local selectorMusics = Regui.CreateSelectorOpitions(GL1["frame_List"], {
+		Name = "Selecionar Música",
+		Options = Lista_N,
+		Type = "Instance",
+		Size_Frame = UDim2.new(1, -10, 0, 150)
+	}, function(selectedObj)
+		playCurrentTrack(selectedObj)
+	end)
+	Loading = false
+end)
+
+
