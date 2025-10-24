@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <link rel="shortcut icon" href="img/ADN_Red.png" type="image/x-icon">
   <title>Adicionar IDs</title>
   <style>
     /* ======= RESET ======= */
@@ -81,18 +80,46 @@
       transform: translateY(-2px);
     }
 
-    /* ======= LIST ======= */
+    /* ======= LISTA ======= */
     h2 {
       margin-top: 40px;
       font-size: 1.5rem;
       text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
     }
 
-    ul {
-      list-style: none;
+    #counter {
+      margin-top: 5px;
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .list-container {
       margin-top: 15px;
       width: 100%;
       max-width: 400px;
+      max-height: 250px; /* altura máxima */
+      overflow-y: auto; /* rolagem vertical */
+      padding-right: 5px;
+    }
+
+    /* Estilo da barra de rolagem */
+    .list-container::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .list-container::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+    }
+
+    .list-container::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 10px;
+    }
+
+    ul {
+      list-style: none;
+      width: 100%;
       padding: 0;
     }
 
@@ -103,6 +130,7 @@
       border-radius: 10px;
       font-size: 1rem;
       transition: all 0.3s ease;
+      word-break: break-all;
     }
 
     li:hover {
@@ -120,6 +148,10 @@
       button {
         width: 100%;
       }
+
+      .list-container {
+        max-height: 200px;
+      }
     }
   </style>
 </head>
@@ -132,16 +164,24 @@
   </form>
 
   <h2>IDs Salvos:</h2>
-  <ul id="musicsList"></ul>
+  <p id="counter">Total: 0</p>
+
+  <div class="list-container">
+    <ul id="musicsList"></ul>
+  </div>
 
   <script>
     const form = document.getElementById("musicForm");
     const musicsList = document.getElementById("musicsList");
+    const counter = document.getElementById("counter");
 
     async function loadMusics() {
       const res = await fetch("/api/musics");
       const musics = await res.json();
+
       musicsList.innerHTML = "";
+      counter.textContent = `Total: ${musics.length}`;
+
       musics.forEach(id => {
         const li = document.createElement("li");
         li.textContent = id;
