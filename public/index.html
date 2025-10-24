@@ -294,7 +294,10 @@
     <input type="text" id="musicId" placeholder="Digite o ID" required>
     <button type="submit">Adicionar</button>
   </form>
-   <h2 style="color: red;" >Servidor Fora do Ar.</h2>
+  
+   <h2 id="Alerta_h" style="color: red;"></h2>
+
+
   <h2>IDs Salvos:</h2>
   <p id="counter">Total: 0</p>
 
@@ -351,39 +354,79 @@
     </div>
   </div>
 
-  <script>
-    const form = document.getElementById("musicForm");
-    const musicsList = document.getElementById("musicsList");
-    const counter = document.getElementById("counter");
+<script>
+const form = document.getElementById("musicForm");
+const musicsList = document.getElementById("musicsList");
+const counter = document.getElementById("counter");
+const alerta = document.getElementById("Alerta_h");
 
-    async function loadMusics() {
-      const res = await fetch("/api/musics");
-      const musics = await res.json();
+// Esconde o alerta por padrão
+alerta.style.display = "none";
 
-      musicsList.innerHTML = "";
-      counter.textContent = `Total: ${musics.length}`;
+async function loadMusics() {
+  try {
+    const res = await fetch("/api/musics");
+    if (!res.ok) throw new Error("Falha ao carregar músicas");
+    const musics = await res.json();
 
-      musics.forEach(id => {
-        const li = document.createElement("li");
-        li.textContent = id;
-        musicsList.appendChild(li);
-      });
-    }
+    musicsList.innerHTML = "";
+    counter.textContent = `Total: ${musics.length}`;
 
-    form.addEventListener("submit", async e => {
-      e.preventDefault();
-      const id = document.getElementById("musicId").value.trim();
-      if (!id) return;
-      await fetch("/api/musics", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
-      });
-      document.getElementById("musicId").value = "";
-      loadMusics();
+    musics.forEach(id => {
+      const li = document.createElement("li");
+      li.textContent = id;
+      musicsList.appendChild(li);
     });
 
+    alerta.style.display = "none"; // esconde alerta se deu certo
+  } catch (err) {
+    console.error(err);
+    alerta.textContent = "Erro ao conectar com o servidor.";
+    alerta.style.display = "block";
+  }
+}
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const id = document.getElementById("musicId").value.trim();
+  if (!id) {
+    alerta.textContent = "Digite um ID.";
+    alerta.style.display = "block";
+    return;
+  }
+
+  if (!/^\d+$/.test(id)) {
+    alerta.textContent = "Digite apenas números!";
+    alerta.style.display = "block";
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/musics", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id })
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alerta.textContent = data.error || "Erro ao adicionar música.";
+      alerta.style.display = "block";
+      return;
+    }
+
+    document.getElementById("musicId").value = "";
+    alerta.style.display = "none";
     loadMusics();
-  </script>
+  } catch (err) {
+    console.error(err);
+    alerta.textContent = "Erro ao adicionar música.";
+    alerta.style.display = "block";
+  }
+});
+
+loadMusics();
+</script>
+
 </body>
 </html>
