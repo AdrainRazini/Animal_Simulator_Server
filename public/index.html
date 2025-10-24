@@ -3,15 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <title>Adicionar IDs</title>
+  <style>
+    /* ======= RESET ======= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 50px 20px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      letter-spacing: 1px;
+      text-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    /* ======= FORM ======= */
+    form {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      border-radius: 15px;
+      padding: 25px 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.2s ease;
+    }
+
+    form:hover {
+      transform: scale(1.03);
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px 15px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      box-shadow: 0 0 10px #fff;
+    }
+
+    button {
+      background: #fff;
+      color: #2575fc;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 1rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      background: #2575fc;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(37, 117, 252, 0.5);
+      transform: translateY(-2px);
+    }
+
+    /* ======= LIST ======= */
+    h2 {
+      margin-top: 40px;
+      font-size: 1.5rem;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    ul {
+      list-style: none;
+      margin-top: 15px;
+      width: 100%;
+      max-width: 400px;
+      padding: 0;
+    }
+
+    li {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 12px 16px;
+      margin: 8px 0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    li:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateX(5px);
+    }
+
+    @media (max-width: 480px) {
+      form {
+        flex-direction: column;
+        width: 100%;
+        max-width: 350px;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Adicionar ID de Música</h1>
+  <h1>🎶 Adicionar ID de Música</h1>
+
   <form id="musicForm">
     <input type="text" id="musicId" placeholder="Digite o ID" required>
     <button type="submit">Adicionar</button>
   </form>
 
-  <h2>IDs salvos:</h2>
+  <h2>IDs Salvos:</h2>
   <ul id="musicsList"></ul>
 
   <script>
