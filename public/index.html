@@ -308,7 +308,24 @@
       <button class="copy-btn" id="copyBtn">📋 Copiar</button>
       <code id="luaCode">loadstring(game:HttpGet("https://animal-simulator-server.vercel.app/lua/mod_animal_simulator_v2.lua"))()</code>
     </div>
+<script>
+  // Função para copiar o código do script
+  document.getElementById("copyBtn").addEventListener("click", () => {
+    const luaCode = document.getElementById("luaCode").innerText;
+    navigator.clipboard.writeText(luaCode);
+    const btn = document.getElementById("copyBtn");
+    btn.textContent = "✅ Copiado!";
+    btn.style.background = "#2ecc71";
+    setTimeout(() => {
+      btn.textContent = "📋 Copiar";
+      btn.style.background = "#2575fc";
+    }, 2000);
+  });
+</script>
+
+
   </div>
+
   
 <div class="discord-section">
     <h3>💬 Comunidade no Discord</h3>
