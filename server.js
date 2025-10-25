@@ -34,6 +34,49 @@ app.use(express.static(path.join(__dirname, "public")));
 // 🎵 API: Gerenciar IDs de músicas (Firebase)
 // ====================
 
+// 🎵 API: Gerenciar IDs de músicas (Firebase) — VERSÃO ATUALIZADA
+app.post("/api/musics_obj", async (req, res) => {
+  const Name = req.body.Name || req.body.name;
+  const Obj = req.body.Obj || req.body.obj;
+
+  if (!Name) return res.status(400).json({ error: "Campo 'Name' é obrigatório" });
+  if (!Obj) return res.status(400).json({ error: "Campo 'Obj' é obrigatório" });
+  if (!/^\d+$/.test(Obj)) return res.status(400).json({ error: "O campo 'Obj' deve conter apenas números" });
+
+  const numericObj = Number(Obj);
+
+  try {
+    const snapshot = await getDocs(collection(db, "musics_obj"));
+    const exists = snapshot.docs.some(doc => doc.data().Obj === numericObj);
+
+    if (exists) return res.status(400).json({ error: "Obj já existe" });
+
+    await addDoc(collection(db, "musics_obj"), { Name, Obj: numericObj });
+    console.log("📩 Novo objeto adicionado:", { Name, Obj: numericObj });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Erro ao salvar no Firestore:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 📜 GET: Retornar todos os objetos no formato Lua/table
+app.get("/api/musics_obj", async (req, res) => {
+  try {
+    const snapshot = await getDocs(collection(db, "musics_obj"));
+    const musics = snapshot.docs.map(doc => doc.data());
+
+    // Converte para formato estilo Lua: [{Name = "x", Obj = 123}, ...]
+    const luaTable = "[" + musics.map(m => `{Name = "${m.Name}", Obj = ${m.Obj}}`).join(", ") + "]";
+    
+    res.type("text/plain").send(luaTable);
+  } catch (err) {
+    console.error("❌ Erro ao buscar musics_obj:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 // ➕ Adicionar um novo ID
 app.post("/api/musics", async (req, res) => {
   const id = req.body.id || req.body.texto;
