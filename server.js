@@ -65,16 +65,13 @@ app.get("/api/musics_obj", async (req, res) => {
   try {
     const snapshot = await getDocs(collection(db, "musics_obj"));
     const musics = snapshot.docs.map(doc => doc.data());
-
-    // Converte para formato estilo Lua: [{Name = "x", Obj = 123}, ...]
-    const luaTable = "[" + musics.map(m => `{Name = "${m.Name}", Obj = ${m.Obj}}`).join(", ") + "]";
-    
-    res.type("text/plain").send(luaTable);
+    res.json(musics); // ✅ JSON real
   } catch (err) {
     console.error("❌ Erro ao buscar musics_obj:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // ➕ Adicionar um novo ID
