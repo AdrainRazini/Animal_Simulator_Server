@@ -72,6 +72,28 @@ app.get("/api/musics_obj", async (req, res) => {
   }
 });
 
+// 📜 GET: Retornar todos os objetos no formato LUA (Module)
+app.get("/api/musics_obj_lua", async (req, res) => {
+  try {
+    const snapshot = await getDocs(collection(db, "musics_obj"));
+    const musics = snapshot.docs.map(doc => doc.data());
+
+    // Gera a string Lua — exemplo: return { {Name="A",Obj=123}, {Name="B",Obj=456} }
+    const luaTable = `return {\n${
+      musics
+        .map(m => `  {Name="${m.Name}", Obj=${m.Obj}}`)
+        .join(",\n")
+    }\n}`;
+
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.send(luaTable);
+  } catch (err) {
+    console.error("❌ Erro ao gerar musics_obj_lua:", err);
+    res.status(500).send("-- Erro ao gerar tabela Lua: " + err.message);
+  }
+});
+
+
 
 
 // ➕ Adicionar um novo ID
