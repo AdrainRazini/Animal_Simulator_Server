@@ -81,7 +81,7 @@ app.get("/api/musics_obj_lua", async (req, res) => {
     // Gera a string Lua — exemplo: return { {Name="A",Obj=123}, {Name="B",Obj=456} }
     const luaTable = `return {\n${
       musics
-        .map(m => `  {Name="${m.Name}", Obj=${m.Obj}}`)
+        .map(m => `  {name="${m.Name}", Obj=${m.Obj}}`)
         .join(",\n")
     }\n}`;
 
