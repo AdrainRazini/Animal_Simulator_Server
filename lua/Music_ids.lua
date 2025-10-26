@@ -390,6 +390,7 @@ local isMinimized = false
 local isMinimized_L = true
 
 -- Minimizar o player inteiro
+-- Minimizar o player inteiro
 GL1["MinimizeBtn"].MouseButton1Click:Connect(function()
 	isMinimized = not isMinimized
 	GL1["CD_Icon"].Visible = not isMinimized
@@ -397,19 +398,24 @@ GL1["MinimizeBtn"].MouseButton1Click:Connect(function()
 	GL1["Input_Bnt"].Visible = not isMinimized
 	GL1["Input_Angle_R"].Visible = not isMinimized
 	GL1["Name_id"].Visible = not isMinimized
-	GL1["frame_List"].Visible = not isMinimized_L -- mantém visibilidade da lista separada
 
-	-- Reduz ou aumenta altura do frame
 	if isMinimized then
-		GL1["frame"].Size = UDim2.new(0, 350, 0, 25)
+		GL1["frame"]:TweenSize(UDim2.new(0, 360, 0, 28), "Out", "Sine", 0.25, true)
 	else
-		GL1["frame"].Size = UDim2.new(0, 350, 0, 150)
+		GL1["frame"]:TweenSize(UDim2.new(0, 360, 0, 150), "Out", "Sine", 0.25, true)
 	end
 end)
 
 -- Minimizar apenas a lista lateral
 GL1["MinimizeBtn_List"].MouseButton1Click:Connect(function()
 	isMinimized_L = not isMinimized_L
+
+if isMinimized_L then
+		GL1["frame_List"]:TweenSize(UDim2.new(0, 25, 1, 0), "Out", "Sine", 0.25, true)
+	else
+		GL1["frame_List"]:TweenSize(UDim2.new(0, 180, 0, 150), "Out", "Sine", 0.25, true)
+	end
+	
 	GL1["frame_List"].Visible = not isMinimized_L
 end)
 
