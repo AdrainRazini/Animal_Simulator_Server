@@ -169,3 +169,36 @@ overlay.addEventListener("click", () => {
 });
 
 
+const logo = document.getElementById("logoPreview");
+const tooltip = document.getElementById("tooltipPreview");
+
+// Mostrar tooltip ao passar o mouse
+logo.addEventListener("mouseenter", () => {
+  tooltip.style.display = "flex";
+});
+
+// Esconder tooltip ao tirar o mouse
+logo.addEventListener("mouseleave", () => {
+  tooltip.style.display = "none";
+});
+
+// Alternativa: clique para manter aberto
+let open = false;
+logo.addEventListener("click", () => {
+  open = !open;
+  tooltip.style.display = open ? "flex" : "none";
+});
+
+
+ // Função para copiar o código do script
+  document.getElementById("copyBtn").addEventListener("click", () => {
+    const luaCode = document.getElementById("luaCode").innerText;
+    navigator.clipboard.writeText(luaCode);
+    const btn = document.getElementById("copyBtn");
+    btn.textContent = "✅ Copiado!";
+    btn.style.background = "#2ecc71";
+    setTimeout(() => {
+      btn.textContent = "📋 Copiar";
+      btn.style.background = "#2575fc";
+    }, 2000);
+  });
