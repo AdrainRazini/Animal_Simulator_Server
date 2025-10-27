@@ -13,6 +13,112 @@
 <body>
 
 
+<!-- Background de bolinhas (neon) -->
+<div class="snow-container" id="snowContainer"></div>
+
+<style>
+/* Background container */
+.snow-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* não interfere com cliques */
+  z-index: 0; /* atrás de tudo */
+}
+
+/* Estilo das bolinhas neon */
+.snowflake {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 255, 255, 0.519);
+  width: 8px;
+  height: 8px;
+  pointer-events: auto; /* permite interação */
+  user-select: none;
+}
+</style>
+
+<script>
+const container = document.getElementById("snowContainer");
+const snowflakes = [];
+const maxSnowflakes = 60;
+
+// Cria uma nova bolinha
+function createSnowflake(x, y) {
+  const flake = document.createElement("div");
+  flake.className = "snowflake";
+
+  // Tamanho aleatório
+  const size = 5 + Math.random() * 12;
+  flake.style.width = flake.style.height = size + "px";
+
+  // Posição inicial
+  flake.style.left = x + "px";
+  flake.style.top = y + "px";
+
+  // Velocidade aleatória
+  flake.vx = (Math.random() - 0.5) * 2;
+  flake.vy = 1 + Math.random() * 3;
+
+  container.appendChild(flake);
+  snowflakes.push(flake);
+}
+
+// Gera novas bolinhas se ainda não atingiu o máximo
+function generateSnowflakes() {
+  while (snowflakes.length < maxSnowflakes) {
+    const x = Math.random() * window.innerWidth;
+    createSnowflake(x, -20);
+  }
+}
+
+let mouseX = null;
+let mouseY = null;
+document.addEventListener("mousemove", e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+// Atualiza posição das bolinhas
+function updateSnowflakes() {
+  for (let i = snowflakes.length - 1; i >= 0; i--) {
+    const flake = snowflakes[i];
+    flake.style.top = parseFloat(flake.style.top) + flake.vy + "px";
+    flake.style.left = parseFloat(flake.style.left) + flake.vx + "px";
+
+    // Interação com mouse
+    if (mouseX !== null && mouseY !== null) {
+      const dx = parseFloat(flake.style.left) - mouseX;
+      const dy = parseFloat(flake.style.top) - mouseY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        flake.vx += dx/dist * 0.3;
+        flake.vy += dy/dist * 0.3;
+      }
+    }
+
+    // Remove se sair da tela
+    if (parseFloat(flake.style.top) > window.innerHeight + 20) {
+      flake.remove();
+      snowflakes.splice(i, 1);
+    }
+  }
+}
+
+// Loop principal
+function animate() {
+  generateSnowflakes();
+  updateSnowflakes();
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+
+
 <!-- Logo Fixa -->
 <div class="fixed-logo" id="logoPreview">
   <img src="img/ADN_ Neon.png" alt="Logo">
@@ -105,6 +211,8 @@
 </div>
 
 <script type="module" src="js/script.js"></script>
+
+
 
 </body>
 </html>
