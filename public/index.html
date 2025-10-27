@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <link rel="shortcut icon" href="img/ADN_Red.png" type="image/x-icon">
+  <title>Adicionar IDs</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/menu.css">
+  <link rel="stylesheet" href="css/modal.css">
+<!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+</head>
+<body>
+
+
+<!-- Background de bolinhas (neon) -->
+<div class="snow-container" id="snowContainer"></div>
+
+<style>
+/* Background container */
+.snow-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* não interfere com cliques */
+  z-index: 0; /* atrás de tudo */
+}
+
+/* Estilo das bolinhas neon */
+.snowflake {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(0, 255, 255, 0.519);
+  width: 8px;
+  height: 8px;
+  pointer-events: auto; /* permite interação */
+  user-select: none;
+}
+</style>
+
+<script>
+const container = document.getElementById("snowContainer");
+const snowflakes = [];
+const maxSnowflakes = 60;
+
+// Cria uma nova bolinha
+function createSnowflake(x, y) {
+  const flake = document.createElement("div");
+  flake.className = "snowflake";
+
+  // Tamanho aleatório
+  const size = 5 + Math.random() * 12;
+  flake.style.width = flake.style.height = size + "px";
+
+  // Posição inicial
+  flake.style.left = x + "px";
+  flake.style.top = y + "px";
+
+  // Velocidade aleatória
+  flake.vx = (Math.random() - 0.5) * 2;
+  flake.vy = 1 + Math.random() * 3;
+
+  container.appendChild(flake);
+  snowflakes.push(flake);
+}
+
+// Gera novas bolinhas se ainda não atingiu o máximo
+function generateSnowflakes() {
+  while (snowflakes.length < maxSnowflakes) {
+    const x = Math.random() * window.innerWidth;
+    createSnowflake(x, -20);
+  }
+}
+
+let mouseX = null;
+let mouseY = null;
+document.addEventListener("mousemove", e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+// Atualiza posição das bolinhas
+function updateSnowflakes() {
+  for (let i = snowflakes.length - 1; i >= 0; i--) {
+    const flake = snowflakes[i];
+    flake.style.top = parseFloat(flake.style.top) + flake.vy + "px";
+    flake.style.left = parseFloat(flake.style.left) + flake.vx + "px";
+
+    // Interação com mouse
+    if (mouseX !== null && mouseY !== null) {
+      const dx = parseFloat(flake.style.left) - mouseX;
+      const dy = parseFloat(flake.style.top) - mouseY;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if (dist < 100) {
+        flake.vx += dx/dist * 0.3;
+        flake.vy += dy/dist * 0.3;
+      }
+    }
+
+    // Remove se sair da tela
+    if (parseFloat(flake.style.top) > window.innerHeight + 20) {
+      flake.remove();
+      snowflakes.splice(i, 1);
+    }
+  }
+}
+
+// Loop principal
+function animate() {
+  generateSnowflakes();
+  updateSnowflakes();
+  requestAnimationFrame(animate);
+}
+
+animate();
+</script>
+
+
+
+<!-- Logo Fixa -->
+<div class="fixed-logo" id="logoPreview">
+  <img src="img/ADN_ Neon.png" alt="Logo">
+  <div class="logo-tooltip" id="tooltipPreview">
+    <video autoplay loop muted playsinline>
+      <source src="img/ADN_RX.mp4" type="video/mp4">
+    </video>
+  </div>
+</div>
+<!-- 🌐 Menu Desktop -->
+<div class="navbar">
+  <a href="#top"><i class="fas fa-home"></i> Início</a>
+  <a href="#musics"><i class="fas fa-music"></i> Músicas</a>
+  <a href="#api"><i class="fas fa-globe"></i> APIs</a>
+  <a href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Discord</a>
+  <a href="https://animal-simulator-server.vercel.app" target="_blank"><i class="fas fa-server"></i> Site</a>
+</div>
+
+<!-- 🍔 Menu Mobile -->
+<div class="hamburger" id="hamburgerMenu">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
+
+<div class="side-menu" id="sideMenu">
+  <a href="#top"><i class="fas fa-home"></i> Início</a>
+  <a href="#musics"><i class="fas fa-music"></i> Músicas</a>
+  <a href="#api"><i class="fas fa-globe"></i> APIs</a>
+  <a href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Discord</a>
+  <a href="https://animal-simulator-server.vercel.app" target="_blank"><i class="fas fa-server"></i> Site</a>
+</div>
+
+<div class="menu-overlay" id="menuOverlay"></div>
+
+<h1>🎶 Adicionar ID de Música</h1>
+
+<form id="musicForm">
+  <input type="text" id="musicId" placeholder="Digite o ID" required>
+  <button type="submit"><i class="fas fa-plus"></i> Adicionar</button>
+</form>
+
+<h2 id="Alerta_h" style="color: red;"></h2>
+
+<h2>IDs Salvos:</h2>
+<p id="counter">Total: 0</p>
+
+<div class="list-container" id="musics">
+  <ul id="musicsList"></ul>
+</div>
+
+<div class="api-section">
+  <h3>🌐 Script Game 🌐</h3>
+  <div class="code-box">
+    <button class="copy-btn" id="copyBtn"><i class="fas fa-clipboard"></i> Copiar</button>
+    <code id="luaCode">loadstring(game:HttpGet("https://animal-simulator-server.vercel.app/lua/mod_animal_simulator_v2.lua"))()</code>
+  </div>
+</div>
+
+<div class="discord-section" id="discord">
+  <h3>💬 Comunidade no Discord</h3>
+  <div class="discord-box">
+    <p>Entre em nossa comunidade para receber atualizações, suporte e novos scripts exclusivos!</p>
+    <a class="discord-btn" href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Entrar no Discord</a>
+  </div>
+</div>
+
+<div class="api-section" id="api">
+  <h3>🌐 APIs / Lua / Scripts</h3>
+  <div class="api-links">
+    <a href="https://animal-simulator-server.vercel.app/lua/DataGui.lua" target="_blank">
+      <i class="fas fa-file-alt"></i> DataGui.lua
+    </a>
+    <a href="https://animal-simulator-server.vercel.app/lua/mod_animal_simulator_v2.lua" target="_blank">
+      <i class="fas fa-puzzle-piece"></i> mod_animal_simulator_v2.lua
+    </a>
+    <a href="https://animal-simulator-server.vercel.app/lua/Music_ids.lua" target="_blank">
+      <i class="fas fa-puzzle-piece"></i> Music_ids.lua
+    </a>
+  </div>
+</div>
+
+<!-- 🔹 Modal de Detalhes -->
+<div id="musicModal" class="modal-overlay">
+  <div class="modal">
+    <span class="close-btn"><i class="fas fa-times"></i></span>
+    <h2 id="modalName"><i class="fas fa-music"></i> Nome da Música</h2>
+    <p id="modalObj"><i class="fas fa-id-badge"></i> ID: 000000</p>
+  </div>
+</div>
+
+<script type="module" src="js/script.js"></script>
+
+
+
+</body>
+</html>
