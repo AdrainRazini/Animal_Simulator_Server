@@ -180,3 +180,49 @@ searchForm.addEventListener("submit", e => e.preventDefault());
 
 // === 🔹 Carrega tudo ao iniciar ===
 loadMusicsObj();
+
+// === 🔹 MENU HAMBÚRGUER e TOOLTIP (inalterado) ===
+const hamburger = document.getElementById("hamburgerMenu");
+const sideMenu = document.getElementById("sideMenu");
+const overlay = document.getElementById("menuOverlay");
+
+hamburger.addEventListener("click", () => {
+  const active = hamburger.classList.toggle("active");
+  sideMenu.classList.toggle("active", active);
+  overlay.classList.toggle("active", active);
+});
+
+overlay.addEventListener("click", () => {
+  hamburger.classList.remove("active");
+  sideMenu.classList.remove("active");
+  overlay.classList.remove("active");
+});
+
+const logo = document.getElementById("logoPreview");
+const tooltip = document.getElementById("tooltipPreview");
+
+logo.addEventListener("mouseenter", () => {
+  tooltip.style.display = "flex";
+});
+logo.addEventListener("mouseleave", () => {
+  tooltip.style.display = "none";
+});
+
+let open = false;
+logo.addEventListener("click", () => {
+  open = !open;
+  tooltip.style.display = open ? "flex" : "none";
+});
+
+// === 🔹 Botão de copiar código (inalterado) ===
+document.getElementById("copyBtn").addEventListener("click", () => {
+  const luaCode = document.getElementById("luaCode").innerText;
+  navigator.clipboard.writeText(luaCode);
+  const btn = document.getElementById("copyBtn");
+  btn.textContent = "✅ Copiado!";
+  btn.style.background = "#2ecc71";
+  setTimeout(() => {
+    btn.textContent = "📋 Copiar";
+    btn.style.background = "#2575fc";
+  }, 2000);
+});
