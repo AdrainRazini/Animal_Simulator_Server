@@ -1,0 +1,85 @@
+
+        :root {
+      --cor-primaria: #4A90E2;
+      --cor-fundo: #f4f6f8;
+      --cor-texto: #333;
+      --cor-botao: #4A90E2;
+      --cor-botao-hover: #357ABD;
+      --cor-box: #fff;
+      --cor-logout: #e74c3c;
+      --cor-logout-hover: #c0392b;
+    }
+
+     
+     /* Spinner simples */
+  #loading {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    color: var(--cor-primaria);
+    z-index: 9999;
+  }
+
+  .spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--cor-primaria);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+
+
+  #btn-topo {
+  position: fixed;
+  background-color: #128C7E;
+  color: white;
+  border: none;
+  padding: 12px 14px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: none;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#btn-index{
+    position: fixed;
+  background-color: #128C7E;
+  color: white;
+  border: none;
+  padding: 12px 14px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  display: block;
+  z-index: 1000;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+#btn-topo:hover, #btn-index:hover {
+  background-color: #0d6d63;
+  transform: scale(1.1);
+}
+
+#btn-topo {
+  bottom: 20px;
+  right: 20px;
+}
+
+#btn-index {
+  bottom: 80px;
+  right: 20px;
+}
