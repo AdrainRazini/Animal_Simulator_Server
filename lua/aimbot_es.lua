@@ -238,9 +238,12 @@ end
 -- Retorna posição da cabeça do alvo
 local function getHeadPosition(target)
 	if not target or not target.Character then return nil end
+	local hum = target.Character:FindFirstChildOfClass("Humanoid")
+	if not hum or hum.Health <= 0 then return nil end
 	local head = target.Character:FindFirstChild("Head")
 	return head and head.Position or nil
 end
+
 
 -- Verifica se a cabeça do alvo está dentro do HUD
 local function targetIsInsideHud(target)
@@ -356,6 +359,12 @@ end
 ]]
 
 
+-- Verifica se o alvo é válido e vivo
+local function isTargetAlive(target)
+	if not target or not target.Character then return false end
+	local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
+	return humanoid and humanoid.Health > 0
+end
 
 
 -- Loop principal: busca alvo, mira e atualiza HUD
@@ -363,8 +372,8 @@ RunService.RenderStepped:Connect(function(dt)
 	local hasHud = Hud_Stats and hudRefs
 	local target = findClosestPlayer()
 
-	if not target then
-		-- Nenhum alvo → limpa HUD
+	-- Se alvo inválido ou morto, limpa HUD e sai
+	if not isTargetAlive(target) then
 		if hasHud then
 			updateHUDStatusAndPosition(nil)
 		else
@@ -373,7 +382,7 @@ RunService.RenderStepped:Connect(function(dt)
 		return
 	end
 
-	-- Opções padrão para a função aimAt
+	-- Opções da mira
 	local aimOptions = {
 		RequireHud = hasHud,
 		Smooth = AIM_SMOOTH,
@@ -389,6 +398,7 @@ RunService.RenderStepped:Connect(function(dt)
 		updateHUDStatus(target)
 	end
 end)
+
 
 UserInputService.InputBegan:Connect(function(input, gp)
 	if gp then return end
