@@ -14,7 +14,7 @@ if existingScreenGui then
 end
 
 game:GetService("StarterGui"):SetCore("SendNotification", { 
-	Title = "Mastermod";
+	Title = "Mastermod + ADN Mod";
 	Text = "AimBot V2";
 	Icon = "rbxthumb://type=Asset&id=72684486485553&w=150&h=150",
 	Duration = 16;
