@@ -102,12 +102,12 @@ function Regui.CreateAimbotHUD(opts)
 	Hud_Frame.AnchorPoint = Vector2.new(0.5, 0.5)
 	Hud_Frame.Position = opts.FramePosition or UDim2.new(0.5, 0, 0.5, 0)
 	Hud_Frame.BackgroundColor3 = opts.FrameColor or Color3.fromRGB(0, 0, 0)
-	Hud_Frame.BackgroundTransparency = opts.FrameTransparency or 0.5
+	Hud_Frame.BackgroundTransparency = opts.FrameTransparency or 0.65
 	Hud_Frame.BorderSizePixel = 0
 	Hud_Frame.Parent = Hud_Screen
 	Hud_Frame.ZIndex = opts.ZIndex or 2
 	applyCorner(Hud_Frame, opts.FrameCorner or UDim.new(1,0))
-	--applyStroke(Hud_Frame, 1, Color3.new(1,1,1), 0.8) -- descomente para stroke
+	applyStroke(Hud_Frame, 1, Color3.new(1,1,1), 0.8) -- descomente para stroke
 
 	-- Sub frame (borda maior)
 	local Hud_Sub_Frame = Instance.new("Frame")
@@ -116,7 +116,7 @@ function Regui.CreateAimbotHUD(opts)
 	Hud_Sub_Frame.AnchorPoint = Vector2.new(0.5, 0.5)
 	Hud_Sub_Frame.Position = opts.SubFramePosition or UDim2.new(0.5, 0, 0.5, 0)
 	Hud_Sub_Frame.BackgroundColor3 = opts.SubFrameColor or Color3.fromRGB(0,0,0)
-	Hud_Sub_Frame.BackgroundTransparency = opts.SubFrameTransparency or 0.8
+	Hud_Sub_Frame.BackgroundTransparency = opts.SubFrameTransparency or 0.9
 	Hud_Sub_Frame.BorderColor3 = opts.SubFrameBorderColor or Color3.fromRGB(255,255,255)
 	Hud_Sub_Frame.BorderSizePixel = opts.SubFrameBorderSize or 2
 	Hud_Sub_Frame.Parent = Hud_Screen
