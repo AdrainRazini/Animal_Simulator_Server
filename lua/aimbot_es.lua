@@ -1,5 +1,13 @@
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+local Camera = Workspace.CurrentCamera
+
 -- Check if a ScreenGui named "AimbotV2" already exists
-local existingScreenGui = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("AimbotV2")
+local existingScreenGui = game.Players.LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("Remake Aimbot(ES)" .. Players.LocalPlayer.Name)
 
 if existingScreenGui then
 	return
@@ -12,202 +20,162 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 	Duration = 16;
 })
 
-local player = game.Players.LocalPlayer
-local players = game:GetService("Players")
-local runService = game:GetService("RunService")
-local camera = game.Workspace.CurrentCamera
 
+-- Variáveis da mira
 local detectionRadius = 50
 local lerpSpeed = 0.1
 local aimEnabled = true
 local targetEnemiesOnly = false
 local includeNPCs = true
+local Hud_Stats = true
 
-local screenGui
-local dragging, dragInput, dragStart, startPos
+-- Carrega Regui
+local Regui
 
-function makeDraggable(frame)
-	local userInputService = game:GetService("UserInputService")
+-- 1️⃣ Tenta carregar localmente
+local success, module = pcall(function()
+	return require(script.Parent:FindFirstChild("ReguiModule"))
+end)
 
-	frame.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = true
-			dragStart = input.Position
-			startPos = frame.Position
+if success and module then
+	Regui = module
+	print("[✅ Mod Loader] Carregado localmente com sucesso!")
+else
+	-- 2️⃣ Tenta baixar remoto
+	local ok, code
+	local urls = {
+		"https://animal-simulator-server.vercel.app/lua/ReguiModule.lua"
+	}
 
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragging = false
-				end
-			end)
-		end
-	end)
-
-	frame.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			dragInput = input
-		end
-	end)
-
-	userInputService.InputChanged:Connect(function(input)
-		if input == dragInput and dragging then
-			local delta = input.Position - dragStart
-			frame.Position = UDim2.new(
-				startPos.X.Scale, startPos.X.Offset + delta.X,
-				startPos.Y.Scale, startPos.Y.Offset + delta.Y
-			)
-		end
-	end)
-end
-
-function createUI()
-	if screenGui then screenGui:Destroy() end
-
-	screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-	screenGui.Name = "AimbotV2"
-	screenGui.ResetOnSpawn = false
-
-	local frame = Instance.new("Frame", screenGui)
-	frame.Size = UDim2.new(0, 230, 0, 260)
-	frame.Position = UDim2.new(0, 20, 0, 20)
-	frame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-	frame.BackgroundTransparency = 0
-	frame.BorderSizePixel = 0
-	frame.ClipsDescendants = true
-
-	local corner = Instance.new("UICorner", frame)
-	corner.CornerRadius = UDim.new(0, 10)
-
-	makeDraggable(frame)
-
-	-- Title
-	local title = Instance.new("TextLabel", frame)
-	title.Size = UDim2.new(1, -30, 0, 30)
-	title.Position = UDim2.new(0, 10, 0, 5)
-	title.Text = "🎯 Aimbot V2"
-	title.TextColor3 = Color3.new(1, 1, 1)
-	title.BackgroundTransparency = 1
-	title.Font = Enum.Font.SourceSansBold
-	title.TextSize = 20
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	
-	-- Status dot
-	local statusDot = Instance.new("Frame", title)
-	statusDot.Size = UDim2.new(0, 10, 0, 10)
-	statusDot.Position = UDim2.new(0, 0, 0.5, -5)
-	title.TextXAlignment = Enum.TextXAlignment.Center
-
-	statusDot.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- initial red
-	statusDot.BorderSizePixel = 0
-
-	local statusCorner = Instance.new("UICorner", statusDot)
-	statusCorner.CornerRadius = UDim.new(1, 0)
-
-	function updateStatusDotColor(target)
-		if not aimEnabled then
-			statusDot.BackgroundColor3 = Color3.fromRGB(255, 255, 0) -- Yellow (Disabled)
-		elseif target then
-			statusDot.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green (Targeting)
-		else
-			statusDot.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red (No target)
-		end
-	end
-
-	-- Minimize button
-	local minimizeBtn = Instance.new("TextButton", frame)
-	minimizeBtn.Size = UDim2.new(0, 20, 0, 20)
-	minimizeBtn.Position = UDim2.new(1, -25, 0, 5)
-	minimizeBtn.Text = "-"
-	minimizeBtn.TextColor3 = Color3.new(1,1,1)
-	minimizeBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	minimizeBtn.Font = Enum.Font.SourceSansBold
-	minimizeBtn.TextSize = 18
-
-	local contentVisible = true
-	local function toggleContent()
-		contentVisible = not contentVisible
-		for _, obj in pairs(frame:GetChildren()) do
-			if obj:IsA("GuiObject") and obj ~= title and obj ~= minimizeBtn and obj ~= corner then
-				obj.Visible = contentVisible
-			end
-		end
-		minimizeBtn.Text = contentVisible and "-" or "+"
-		frame.Size = contentVisible and UDim2.new(0, 230, 0, 260) or UDim2.new(0, 230, 0, 35)
-	end
-
-	minimizeBtn.MouseButton1Click:Connect(toggleContent)
-
-	-- Button creation function
-	local y = 40
-	local function createButton(text, callback)
-		local btn = Instance.new("TextButton", frame)
-		btn.Size = UDim2.new(1, -20, 0, 30)
-		btn.Position = UDim2.new(0, 10, 0, y)
-		btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-		btn.TextColor3 = Color3.new(1, 1, 1)
-		btn.Text = text
-		btn.Font = Enum.Font.SourceSans
-		btn.TextSize = 16
-		btn.MouseButton1Click:Connect(function()
-			callback(btn)
+	for _, url in ipairs(urls) do
+		local okHttp, result = pcall(function()
+			return game:HttpGet(url)
 		end)
-		y = y + 35
-		return btn
+		if okHttp and result and result ~= "" then
+			code = result
+			print("[🌐 Mod Loader] Código baixado de: " .. url)
+			break
+		else
+			warn("[⚠️ Mod Loader] Falha ao baixar de:", url)
+		end
 	end
 
-	-- Toggle aim
-	createButton("Disable Aim", function(btn)
-		aimEnabled = not aimEnabled
-		btn.Text = aimEnabled and "Disable Aim" or "Enable Aim"
-	end)
-
-	-- Detection radius input
-	local distanceBox = Instance.new("TextBox", frame)
-	distanceBox.Size = UDim2.new(1, -20, 0, 30)
-	distanceBox.Position = UDim2.new(0, 10, 0, y)
-	distanceBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-	distanceBox.TextColor3 = Color3.new(1, 1, 1)
-	distanceBox.Text = tostring(detectionRadius)
-	distanceBox.Font = Enum.Font.SourceSans
-	distanceBox.TextSize = 16
-	distanceBox.ClearTextOnFocus = false
-	distanceBox.FocusLost:Connect(function()
-		local newVal = tonumber(distanceBox.Text)
-		if newVal then
-			detectionRadius = math.clamp(newVal, 10, 1000)
+	-- 3️⃣ Executa o código remoto se baixado
+	if code then
+		local okLoad, result = pcall(function()
+			return loadstring(code)() 
+		end)
+		if okLoad and result then
+			Regui = result
+			print("[✅ Mod Loader] Módulo remoto carregado com sucesso!")
+		else
+			warn("[❌ Mod Loader] Erro ao executar código remoto:", result)
 		end
-	end)
-	y = y + 35
-
-	-- Toggle team targeting
-	createButton("Target Everyone", function(btn)
-		targetEnemiesOnly = not targetEnemiesOnly
-		btn.Text = targetEnemiesOnly and "Target Enemies Only" or "Target Everyone"
-	end)
-
-	-- Toggle NPCs
-	createButton("Target NPCs: Yes", function(btn)
-		includeNPCs = not includeNPCs
-		btn.Text = "Target NPCs: " .. (includeNPCs and "Yes" or "No")
-	end)
+	else
+		warn("[❌ Mod Loader] Nenhuma das fontes pôde ser carregada.")
+	end
 end
 
-function findClosestPlayer()
+assert(Regui, "Regui não foi carregado!")
+
+
+
+
+
+-- Cria HUD com Regui
+local hudRefs
+
+if Regui then
+	hudRefs = Regui.CreateAimbotHUD({
+		Parent = PlayerGui,
+		FollowMouse = false,
+		PulsePoint = false,
+		Name = "Remake Aimbot(ES)" .. Players.LocalPlayer.Name
+	})
+
+	-- Cria Menu com Regui
+	local menu = Regui.CreateMenuHud({
+		Title = "🎯 Aimbot Menu",
+		FrameColor = Color3.fromRGB(30,30,30),
+		ButtonColor = Color3.fromRGB(50,50,50)
+	}, {
+		{
+			Name = "Enable Aim",
+			Callback = function() aimEnabled = not aimEnabled end,
+			StateFunc = function() return aimEnabled end
+		},
+		{
+			Name = "Target NPC",
+			Callback = function() includeNPCs = not includeNPCs end,
+			StateFunc = function() return includeNPCs end
+		},
+		{
+			Name = "EnemiesOnly",
+			Callback = function() targetEnemiesOnly = not targetEnemiesOnly end,
+			StateFunc = function() return targetEnemiesOnly end
+		},
+		{
+			Name = "Use Hud Stats",
+			Callback = function() Hud_Stats = not Hud_Stats  end,
+			StateFunc = function() return Hud_Stats end
+		},
+	})
+
+
+	local input = menu.CreateInputText("Distance", "Distance: 50", function(text, enterPressed)
+		print("Texto digitado:", text)
+		if enterPressed then
+			detectionRadius = tonumber(text) or detectionRadius
+		end
+	end)
+
+
+end
+
+
+
+-- ex 
+
+local function getHudFrame()
+	if not hudRefs then return nil end
+	-- espera SubFrame primeiro, depois Frame
+	local frame = hudRefs.SubFrame or hudRefs.Frame
+	if not frame then return nil end
+
+	-- garante que AbsolutePosition e Size estejam atualizados
+	frame:GetPropertyChangedSignal("AbsolutePosition"):Wait()
+	frame:GetPropertyChangedSignal("AbsoluteSize"):Wait()
+	return frame
+end
+
+
+-- Atualiza HUD do status
+local function updateHUDStatus(target)
+	if hudRefs and hudRefs.Point then
+		if not aimEnabled then
+			hudRefs.Point.BackgroundColor3 = Color3.fromRGB(255, 255, 0)
+		elseif target then
+			hudRefs.Point.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+		else
+			hudRefs.Point.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+		end
+	end
+end
+
+-- Função para encontrar o alvo mais próximo
+local function findClosestPlayer()
 	if not aimEnabled then return nil end
-
-	local character = player.Character
+	local character = Players.LocalPlayer.Character
 	if not character then return nil end
-
 	local hrp = character:FindFirstChild("HumanoidRootPart")
 	if not hrp then return nil end
 
 	local closestTarget = nil
 	local closestDistance = detectionRadius
 
-	-- Search players
-	for _, p in ipairs(players:GetPlayers()) do
-		if p ~= player and p.Character then
-			if targetEnemiesOnly and p.Team == player.Team then continue end
+	for _, p in ipairs(Players:GetPlayers()) do
+		if p ~= Players.LocalPlayer and p.Character then
+			if targetEnemiesOnly and p.Team == Players.LocalPlayer.Team then continue end
 			local head = p.Character:FindFirstChild("Head")
 			local humanoid = p.Character:FindFirstChildOfClass("Humanoid")
 			if head and humanoid and humanoid.Health > 0 then
@@ -220,10 +188,9 @@ function findClosestPlayer()
 		end
 	end
 
-	-- Search NPCs
 	if includeNPCs then
-		for _, npc in ipairs(workspace:GetDescendants()) do
-			if npc:IsA("Model") and not players:GetPlayerFromCharacter(npc) then
+		for _, npc in ipairs(Workspace:GetDescendants()) do
+			if npc:IsA("Model") and not Players:GetPlayerFromCharacter(npc) then
 				local hum = npc:FindFirstChildOfClass("Humanoid")
 				local head = npc:FindFirstChild("Head")
 				if hum and head and hum.Health > 0 then
@@ -240,29 +207,147 @@ function findClosestPlayer()
 	return closestTarget
 end
 
-function aimAt(target)
+-- Função para mirar
+local function aimAt(target)
 	if not aimEnabled or not target or not target.Character then return end
 	local head = target.Character:FindFirstChild("Head")
 	if head then
 		local targetPosition = head.Position
-		local cameraLookAt = CFrame.new(camera.CFrame.Position, targetPosition)
-		camera.CFrame = cameraLookAt:Lerp(camera.CFrame, lerpSpeed)
+		local cameraLookAt = CFrame.new(Camera.CFrame.Position, targetPosition)
+		Camera.CFrame = cameraLookAt:Lerp(Camera.CFrame, lerpSpeed)
 	end
 end
 
--- Create UI and update when character respawns
-local function setupUI()
-	createUI()
+-- retorna frame do HUD (garante propriedades atualizadas)
+local function safeGetHudFrame()
+	if not hudRefs then return nil end
+	local frame = hudRefs.SubFrame or hudRefs.Frame
+	if not frame then return nil end
+
+	-- se AbsoluteSize já for zero, espera um Heartbeat para garantir renderização
+	if frame.AbsoluteSize.X == 0 or frame.AbsoluteSize.Y == 0 then
+		RunService.Heartbeat:Wait()
+	end
+	-- opcional: aguarda sinal caso ainda precise
+	if frame.AbsoluteSize.X == 0 or frame.AbsoluteSize.Y == 0 then
+		frame:GetPropertyChangedSignal("AbsoluteSize"):Wait()
+	end
+
+	return frame
 end
 
-player.CharacterAdded:Connect(setupUI)
+-- verifica se a posição do head (em pixels) está dentro do frame do HUD
+local function targetIsInsideHud(target)
+	if not hudRefs then return false end
+	if not target or not target.Character then return false end
+	local head = target.Character:FindFirstChild("Head")
+	if not head then return false end
 
-if player.Character then
-	setupUI()
+	local screenPoint3 = Camera:WorldToViewportPoint(head.Position)
+	local sx, sy, sz = screenPoint3.X, screenPoint3.Y, screenPoint3.Z
+	if sz <= 0 then return false end -- atrás da camera
+	local viewport = Camera.ViewportSize
+	if sx < 0 or sx > viewport.X or sy < 0 or sy > viewport.Y then return false end
+
+	local frame = safeGetHudFrame()
+	if not frame then return false end
+	-- usa AbsolutePosition/Size
+	local pos = frame.AbsolutePosition
+	local size = frame.AbsoluteSize
+	-- confere dentro do retângulo
+	return sx >= pos.X and sx <= (pos.X + size.X) and sy >= pos.Y and sy <= (pos.Y + size.Y)
 end
 
-runService.RenderStepped:Connect(function()
+-- mira suave (igual sua função aimAt mas usada condicionalmente)
+local function aimAtWhenInHud(target)
+	if not aimEnabled or not target then return end
+	if not targetIsInsideHud(target) then return end
+
+	if not target.Character then return end
+	local head = target.Character:FindFirstChild("Head")
+	if head then
+		local camLook = CFrame.new(Camera.CFrame.Position, head.Position)
+		Camera.CFrame = camLook:Lerp(Camera.CFrame, lerpSpeed)
+	end
+end
+
+-- atualiza posição do ponto do HUD (tweened). se não houver target dentro do HUD, centraliza.
+local function updateHudPointPosition(target)
+	if not hudRefs or not hudRefs.Point then return end
+	local frame = safeGetHudFrame()
+	if not frame then return end
+
+	local centerX = frame.AbsolutePosition.X + frame.AbsoluteSize.X * 0.5
+	local centerY = frame.AbsolutePosition.Y + frame.AbsoluteSize.Y * 0.5
+
+	-- se target válido e dentro do HUD, mover para a posição do head (limitado ao frame)
+	if target and target.Character and targetIsInsideHud(target) then
+		local head = target.Character:FindFirstChild("Head")
+		if head then
+			local screenPoint3 = Camera:WorldToViewportPoint(head.Position)
+			local sx, sy = screenPoint3.X, screenPoint3.Y
+
+			-- limita para não ultrapassar o frame
+			local pos = frame.AbsolutePosition
+			local size = frame.AbsoluteSize
+			local clampedX = math.clamp(sx, pos.X, pos.X + size.X)
+			local clampedY = math.clamp(sy, pos.Y, pos.Y + size.Y)
+
+			-- converte para posição relativa dentro do frame (pixels)
+			local relX = clampedX - pos.X
+			local relY = clampedY - pos.Y
+
+			local goal = { Position = UDim2.new(0, relX, 0, relY) }
+			local tween = TweenService:Create(hudRefs.Point, TweenInfo.new(0.08, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), goal)
+			tween:Play()
+			return
+		end
+	end
+
+	-- fallback: centraliza o point no frame (tween suave)
+	local relCenterX = centerX - frame.AbsolutePosition.X
+	local relCenterY = centerY - frame.AbsolutePosition.Y
+	local goal = { Position = UDim2.new(0, relCenterX, 0, relCenterY) }
+	TweenService:Create(hudRefs.Point, TweenInfo.new(0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), goal):Play()
+end
+
+-- atualiza cor/estado do ponto (mantive sua função)
+local function updateHUDStatusAndPosition(target)
+	updateHUDStatus(target)
+	--updateHudPointPosition(target)
+end
+
+
+-- Reconstrói HUD quando o personagem renasce (mantendo referências)
+local function rebuildHud()
+	if not Regui then return end
+	hudRefs = Regui.CreateAimbotHUD({
+		Parent = PlayerGui,
+		FollowMouse = false,
+		PulsePoint = false,
+		Name = "Remake Aimbot(ES)" .. Players.LocalPlayer.Name
+	})
+end
+
+Players.LocalPlayer.CharacterAdded:Connect(function()
+	-- espera o personagem carregar completamente
+	repeat RunService.Heartbeat:Wait() until Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+	rebuildHud()
+end)
+
+-- caso o personagem já exista no início do script
+if Players.LocalPlayer.Character then
+	rebuildHud()
+end
+
+-- loop principal: busca alvo, mira e atualiza HUD
+RunService.RenderStepped:Connect(function()
 	local target = findClosestPlayer()
-	aimAt(target)
-	updateStatusDotColor(target)
+	if Hud_Stats then
+		aimAtWhenInHud(target)            -- mira somente se o target estiver dentro do HUD
+		updateHUDStatusAndPosition(target) -- atualiza cor + posição do point
+	else
+		aimAt(target)                      -- mira normalmente
+		updateHUDStatus(target)            -- atualiza cor
+	end
 end)
