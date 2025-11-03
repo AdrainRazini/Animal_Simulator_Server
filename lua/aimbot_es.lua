@@ -14,7 +14,7 @@ if existingScreenGui then
 end
 
 game:GetService("StarterGui"):SetCore("SendNotification", { 
-	Title = "Mastermod + ADN Mod";
+	Title = "Master + ADN Mod";
 	Text = "AimBot V2";
 	Icon = "rbxthumb://type=Asset&id=72684486485553&w=150&h=150",
 	Duration = 16;
@@ -22,7 +22,7 @@ game:GetService("StarterGui"):SetCore("SendNotification", {
 
 
 -- Variáveis da mira
-local detectionRadius = 50
+local detectionRadius = 150
 local lerpSpeed = 0.1
 local aimEnabled = true
 local targetEnemiesOnly = false
@@ -122,7 +122,7 @@ if Regui then
 	})
 
 
-	local input = menu.CreateInputText("Distance", "Distance: 50", function(text, enterPressed)
+	local input = menu.CreateInputText("Distance", "Distance: " ..detectionRadius, function(text, enterPressed)
 		print("Texto digitado:", text)
 		if enterPressed then
 			detectionRadius = tonumber(text) or detectionRadius
@@ -145,6 +145,24 @@ local function getHudFrame()
 	-- garante que AbsolutePosition e Size estejam atualizados
 	frame:GetPropertyChangedSignal("AbsolutePosition"):Wait()
 	frame:GetPropertyChangedSignal("AbsoluteSize"):Wait()
+	return frame
+end
+
+-- retorna frame do HUD (garante propriedades atualizadas)
+local function safeGetHudFrame()
+	if not hudRefs then return nil end
+	local frame = hudRefs.SubFrame or hudRefs.Frame
+	if not frame then return nil end
+
+	-- se AbsoluteSize já for zero, espera um Heartbeat para garantir renderização
+	if frame.AbsoluteSize.X == 0 or frame.AbsoluteSize.Y == 0 then
+		RunService.Heartbeat:Wait()
+	end
+	-- opcional: aguarda sinal caso ainda precise
+	if frame.AbsoluteSize.X == 0 or frame.AbsoluteSize.Y == 0 then
+		frame:GetPropertyChangedSignal("AbsoluteSize"):Wait()
+	end
+
 	return frame
 end
 
@@ -207,33 +225,11 @@ local function findClosestPlayer()
 	return closestTarget
 end
 
--- Função para mirar
-local function aimAt(target)
-	if not aimEnabled or not target or not target.Character then return end
+
+local function getHeadPosition(target)
+	if not target or not target.Character then return nil end
 	local head = target.Character:FindFirstChild("Head")
-	if head then
-		local targetPosition = head.Position
-		local cameraLookAt = CFrame.new(Camera.CFrame.Position, targetPosition)
-		Camera.CFrame = cameraLookAt:Lerp(Camera.CFrame, lerpSpeed)
-	end
-end
-
--- retorna frame do HUD (garante propriedades atualizadas)
-local function safeGetHudFrame()
-	if not hudRefs then return nil end
-	local frame = hudRefs.SubFrame or hudRefs.Frame
-	if not frame then return nil end
-
-	-- se AbsoluteSize já for zero, espera um Heartbeat para garantir renderização
-	if frame.AbsoluteSize.X == 0 or frame.AbsoluteSize.Y == 0 then
-		RunService.Heartbeat:Wait()
-	end
-	-- opcional: aguarda sinal caso ainda precise
-	if frame.AbsoluteSize.X == 0 or frame.AbsoluteSize.Y == 0 then
-		frame:GetPropertyChangedSignal("AbsoluteSize"):Wait()
-	end
-
-	return frame
+	return head and head.Position or nil
 end
 
 -- verifica se a posição do head (em pixels) está dentro do frame do HUD
@@ -257,6 +253,28 @@ local function targetIsInsideHud(target)
 	-- confere dentro do retângulo
 	return sx >= pos.X and sx <= (pos.X + size.X) and sy >= pos.Y and sy <= (pos.Y + size.Y)
 end
+
+-- Mira simples e segura
+local function aimAt(target, options)
+	options = options or {}
+	if not aimEnabled or not target then return end
+
+	local headPos = getHeadPosition(target)
+	if not headPos then return end
+
+	-- se tiver a opção 'InsideHud', checa se está dentro do HUD
+	if options.InsideHud and not targetIsInsideHud(target) then return end
+
+	-- calcula lookAt
+	local cam = Camera
+	if not cam then return end
+	local newCFrame = CFrame.new(cam.CFrame.Position, headPos)
+
+	-- suaviza com deltaTime ou velocidade fixa
+	local speed = options.LerpSpeed or lerpSpeed
+	cam.CFrame = cam.CFrame:Lerp(newCFrame, speed)
+end
+
 
 -- mira suave (igual sua função aimAt mas usada condicionalmente)
 local function aimAtWhenInHud(target)
@@ -328,6 +346,7 @@ local function rebuildHud()
 		Name = "Remake Aimbot(ES)" .. Players.LocalPlayer.Name
 	})
 end
+
 --[[
 Players.LocalPlayer.CharacterAdded:Connect(function()
 	-- espera o personagem carregar completamente
@@ -340,6 +359,7 @@ if Players.LocalPlayer.Character then
 	rebuildHud()
 end
 ]]
+
 -- loop principal: busca alvo, mira e atualiza HUD
 RunService.RenderStepped:Connect(function()
 	local target = findClosestPlayer()
