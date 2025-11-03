@@ -4,6 +4,7 @@ local RunService = game:GetService("RunService")
 local PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 local Workspace = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 local Camera = Workspace.CurrentCamera
 
 -- Check if a ScreenGui named "AimbotV2" already exists
@@ -28,6 +29,8 @@ local aimEnabled = true
 local targetEnemiesOnly = false
 local includeNPCs = true
 local Hud_Stats = true
+-- Configuração da suavização (pode mudar dinamicamente)
+local AIM_SMOOTH = true -- true = suave (Lerp) | false = mira direta
 
 -- Carrega Regui
 local Regui
@@ -119,6 +122,11 @@ if Regui then
 			Callback = function() Hud_Stats = not Hud_Stats  end,
 			StateFunc = function() return Hud_Stats end
 		},
+		{
+			Name = "Lerp Camera",
+			Callback = function() AIM_SMOOTH = not AIM_SMOOTH  end,
+			StateFunc = function() return AIM_SMOOTH end
+		}
 	})
 
 
@@ -227,37 +235,32 @@ local function findClosestPlayer()
 	return closestTarget -- sempre retorna o mais próximo vivo dentro do raio
 end
 
-
-
+-- Retorna posição da cabeça do alvo
 local function getHeadPosition(target)
 	if not target or not target.Character then return nil end
 	local head = target.Character:FindFirstChild("Head")
 	return head and head.Position or nil
 end
 
--- verifica se a posição do head (em pixels) está dentro do frame do HUD
+-- Verifica se a cabeça do alvo está dentro do HUD
 local function targetIsInsideHud(target)
-	if not hudRefs then return false end
-	if not target or not target.Character then return false end
-	local head = target.Character:FindFirstChild("Head")
-	if not head then return false end
+	if not hudRefs or not hudRefs.Frame then return false end
+	local headPos = getHeadPosition(target)
+	if not headPos then return false end
 
-	local screenPoint3 = Camera:WorldToViewportPoint(head.Position)
+	local screenPoint3 = Camera:WorldToViewportPoint(headPos)
 	local sx, sy, sz = screenPoint3.X, screenPoint3.Y, screenPoint3.Z
-	if sz <= 0 then return false end -- atrás da camera
-	local viewport = Camera.ViewportSize
-	if sx < 0 or sx > viewport.X or sy < 0 or sy > viewport.Y then return false end
+	if sz <= 0 then return false end -- atrás da câmera
 
 	local frame = safeGetHudFrame()
 	if not frame then return false end
-	-- usa AbsolutePosition/Size
-	local pos = frame.AbsolutePosition
-	local size = frame.AbsoluteSize
-	-- confere dentro do retângulo
-	return sx >= pos.X and sx <= (pos.X + size.X) and sy >= pos.Y and sy <= (pos.Y + size.Y)
+	local pos, size = frame.AbsolutePosition, frame.AbsoluteSize
+
+	return sx >= pos.X and sx <= (pos.X + size.X)
+		and sy >= pos.Y and sy <= (pos.Y + size.Y)
 end
 
--- Mira simples e segura
+-- Mira genérica (com checagem de HUD opcional)
 local function aimAt(target, options)
 	options = options or {}
 	if not aimEnabled or not target then return end
@@ -265,32 +268,21 @@ local function aimAt(target, options)
 	local headPos = getHeadPosition(target)
 	if not headPos then return end
 
-	-- se tiver a opção 'InsideHud', checa se está dentro do HUD
-	if options.InsideHud and not targetIsInsideHud(target) then return end
+	-- Ignora se alvo não estiver dentro do HUD, quando requisitado
+	if options.RequireHud and not targetIsInsideHud(target) then return end
 
-	-- calcula lookAt
 	local cam = Camera
-	if not cam then return end
 	local newCFrame = CFrame.new(cam.CFrame.Position, headPos)
 
-	-- suaviza com deltaTime ou velocidade fixa
-	local speed = options.LerpSpeed or lerpSpeed
-	cam.CFrame = cam.CFrame:Lerp(newCFrame, speed)
-end
-
-
--- mira suave (igual sua função aimAt mas usada condicionalmente)
-local function aimAtWhenInHud(target)
-	if not aimEnabled or not target then return end
-	if not targetIsInsideHud(target) then return end
-
-	if not target.Character then return end
-	local head = target.Character:FindFirstChild("Head")
-	if head then
-		local camLook = CFrame.new(Camera.CFrame.Position, head.Position)
-		Camera.CFrame = camLook:Lerp(Camera.CFrame, lerpSpeed)
+	-- Se Smooth = false → mira direta instantânea
+	if options.Smooth == false then
+		cam.CFrame = newCFrame
+	else
+		local speed = options.LerpSpeed or lerpSpeed
+		cam.CFrame = cam.CFrame:Lerp(newCFrame, speed)
 	end
 end
+
 
 -- atualiza posição do ponto do HUD (tweened). se não houver target dentro do HUD, centraliza.
 local function updateHudPointPosition(target)
@@ -363,14 +355,45 @@ if Players.LocalPlayer.Character then
 end
 ]]
 
--- loop principal: busca alvo, mira e atualiza HUD
-RunService.RenderStepped:Connect(function()
+
+
+
+-- Loop principal: busca alvo, mira e atualiza HUD
+RunService.RenderStepped:Connect(function(dt)
+	local hasHud = Hud_Stats and hudRefs
 	local target = findClosestPlayer()
-	if Hud_Stats then
-		aimAtWhenInHud(target)            -- mira somente se o target estiver dentro do HUD
-		updateHUDStatusAndPosition(target) -- atualiza cor + posição do point
+
+	if not target then
+		-- Nenhum alvo → limpa HUD
+		if hasHud then
+			updateHUDStatusAndPosition(nil)
+		else
+			updateHUDStatus(nil)
+		end
+		return
+	end
+
+	-- Opções padrão para a função aimAt
+	local aimOptions = {
+		RequireHud = hasHud,
+		Smooth = AIM_SMOOTH,
+		LerpSpeed = lerpSpeed
+	}
+
+	-- Mira e atualiza status
+	aimAt(target, aimOptions)
+
+	if hasHud then
+		updateHUDStatusAndPosition(target)
 	else
-		aimAt(target)                      -- mira normalmente
-		updateHUDStatus(target)            -- atualiza cor
+		updateHUDStatus(target)
+	end
+end)
+
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.F then
+		AIM_SMOOTH = not AIM_SMOOTH
+		print("Modo de mira:", AIM_SMOOTH and "Suave" or "Instantâneo")
 	end
 end)
