@@ -328,7 +328,7 @@ local function rebuildHud()
 		Name = "Remake Aimbot(ES)" .. Players.LocalPlayer.Name
 	})
 end
-
+--[[
 Players.LocalPlayer.CharacterAdded:Connect(function()
 	-- espera o personagem carregar completamente
 	repeat RunService.Heartbeat:Wait() until Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -339,7 +339,7 @@ end)
 if Players.LocalPlayer.Character then
 	rebuildHud()
 end
-
+]]
 -- loop principal: busca alvo, mira e atualiza HUD
 RunService.RenderStepped:Connect(function()
 	local target = findClosestPlayer()
