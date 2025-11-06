@@ -3137,7 +3137,7 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 	end
 end)
 
-
+--[[
 local success, response = pcall(function()
 	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/Translate.lua")
 end)
@@ -3157,3 +3157,4 @@ if success and response then
 else
 	warn("❌ Falha ao baixar API de tradução:", response)
 end
+]]
