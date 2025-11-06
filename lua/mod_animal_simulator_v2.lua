@@ -3136,3 +3136,24 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 		
 	end
 end)
+
+
+local success, response = pcall(function()
+	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/Translate.lua")
+end)
+
+if success and response then
+	local ok, Translate_Api = pcall(function()
+		return loadstring(response)()
+	end)
+
+	if ok then
+		print("✅ API de tradução carregada com sucesso!")
+		-- Exemplo: usar a função interna
+		Translate_Api.AutoTranslate(script.Parent, "All")
+	else
+		warn("⚠️ Erro ao executar código retornado:", Translate_Api)
+	end
+else
+	warn("❌ Falha ao baixar API de tradução:", response)
+end
