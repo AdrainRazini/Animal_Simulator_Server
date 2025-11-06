@@ -58,9 +58,14 @@ end
 function Translator.AutoTranslate(gui, searchMode)
 	searchMode = searchMode or "Class" -- "Class" | "Name" | "All"
 
+	if not gui or typeof(gui.GetDescendants) ~= "function" then
+		warn("[AutoTranslate] GUI inválido ou não encontrado:", gui)
+		return
+	end
+
 	for _, obj in ipairs(gui:GetDescendants()) do
 		if obj:IsA("TextLabel") or obj:IsA("TextButton") or obj:IsA("TextBox") then
-			local textToTranslate = nil
+			local textToTranslate
 
 			if searchMode == "Name" then
 				textToTranslate = obj.Name
@@ -82,8 +87,5 @@ function Translator.AutoTranslate(gui, searchMode)
 	end
 end
 
--- 🧩 Exemplo de uso:
-local gui = script.Parent -- sua GUI principal
-Translator.AutoTranslate(gui, "All") -- traduz por texto e nome
 
 return Translator
