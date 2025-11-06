@@ -3150,7 +3150,7 @@ if success and response then
 	if ok then
 		print("✅ API de tradução carregada com sucesso!")
 		-- Exemplo: usar a função interna
-		Translate_Api.AutoTranslate(script.Parent, "All")
+		Translate_Api.AutoTranslate(PlayerGui:FindFirstChild(GuiName), "All")
 	else
 		warn("⚠️ Erro ao executar código retornado:", Translate_Api)
 	end
