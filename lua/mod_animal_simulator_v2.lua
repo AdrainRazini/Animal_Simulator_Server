@@ -1251,6 +1251,7 @@ local ToggleBosses_AFK = Regui.CreateToggleboxe(FarmTab, {Text="AFK Camera Bosse
 end)
 
 
+
 -- 🌀 Toggle de AFK Camera
 local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp Hud Bosses", Color = "Red"}, function(state)
 	local success, newRewardGui = pcall(function()
@@ -1259,25 +1260,22 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 
 	if success and newRewardGui then
 		local New_Frame = newRewardGui:FindFirstChild("NewFrame")
-		local Sound_Exp = newRewardGui:FindFirstChild("Sound")
 
+		-- 🔹 Esconde ou mostra o frame principal
 		if New_Frame then
-		 -- esconde se ativado
-			-- Percorre todos os ExpFrame dentro do NewFrame
-			for _, obj in ipairs(New_Frame:GetDescendants()) do
-				if obj:IsA("Frame") and obj.Name == "ExpFrame" then
-					obj.Visible = not state -- esconde se ativado
-				end
-			end
+			New_Frame.Visible = not state
 		end
 
-		-- Controle do som
-		if Sound_Exp then
-			Sound_Exp.Volume = state and 0 or 1
-		end
+		-- 🔹 Captura e controla o som em thread separada (garante que exista)
+		task.spawn(function()
+			local Sound_Exp = newRewardGui:WaitForChild("Sound", 5)
+			if Sound_Exp then
+				Sound_Exp.Volume = state and 0 or 1
+			end
+		end)
 	end
 
-	-- Atualiza variável global/local
+	-- 🔹 Atualiza variável global/local
 	AF.Hide_New = state
 end)
 
