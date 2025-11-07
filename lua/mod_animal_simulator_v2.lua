@@ -1267,12 +1267,39 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 		end
 
 		-- 🔹 Captura e controla o som em thread separada (garante que exista)
+		-- 🔹 Captura e controla o som em thread separada (garante que exista e monitora novos)
 		task.spawn(function()
-			local Sound_Exp = newRewardGui.ExpFrame:WaitForChild("Sound", 5)
-			if Sound_Exp then
-				Sound_Exp.Volume = state and 0.1 or 1
+			-- Função auxiliar para ajustar volume em todos os sons encontrados
+			local function AjustarSons()
+				for _, frame in ipairs(newRewardGui:GetChildren()) do
+					if frame:IsA("Frame") and frame.Name:match("ExpFrame") then
+						local sound = frame:FindFirstChild("Sound")
+						if sound and sound:IsA("Sound") then
+							sound.Volume = state and 0.1 or 1
+						end
+					end
+				end
 			end
+
+			-- Ajusta os existentes
+			AjustarSons()
+
+			-- 🔁 Monitora criação/remoção de novos ExpFrame (dinâmico)
+			newRewardGui.ChildAdded:Connect(function(child)
+				if child.Name:match("ExpFrame") then
+					local sound = child:WaitForChild("Sound", 5)
+					if sound and sound:IsA("Sound") then
+						sound.Volume = state and 0.1 or 1
+					end
+				end
+			end)
+
+			-- Caso queira monitorar remoções (opcional)
+			newRewardGui.ChildRemoved:Connect(function()
+				AjustarSons()
+			end)
 		end)
+
 	end
 
 	-- 🔹 Atualiza variável global/local
