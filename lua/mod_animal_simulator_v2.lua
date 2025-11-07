@@ -214,7 +214,7 @@ local selectedPlayer = nil -- caso seja nil ou "All", usa todos os jogadores
 local autoAttackIndex = 1 -- controla o ciclo 1-5
 
 -- FLAGS
-local AF = { coins=false, bosses=false, afkmod = false, dummies=false, dummies5k=false, tpDummy=false, tpDummy5k=false }
+local AF = { coins=false, bosses=false, afkmod = false, dummies=false, dummies5k=false, tpDummy=false, tpDummy5k=false, Hide_New = false }
 local AF_Timer = {Coins_Speed = 1, Bosses_Speed = 0.05, Dummies_Speed = 1, DummiesTp_Speed = 1}
 local PVP = { killAura=false, AutoFire=false, AutoEletric=false, AutoFireIA=false, AutoEletricIA=false, AutoAttack=false, AutoFlyAttack=false, AttackType="Melee", AutoTp = false }
 local PVP_Timer = {KillAura_Speed = 0.05, AutoFire_Speed = 0.05, AutoEletric_Speed = 0.05,AutoFireIA_Speed = 0.05, AutoEletricIA_Speed = 0.05, AutoAttack_Speed = 0.05, AutoFlyAttack_Speed = 0.05, AutoTp_Speed = 1}
@@ -1249,6 +1249,39 @@ local ToggleBosses_AFK = Regui.CreateToggleboxe(FarmTab, {Text="AFK Camera Bosse
 		movCameraPlr(nil, false)
 	end
 end)
+
+
+-- 🌀 Toggle de AFK Camera
+local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp Hud Bosses", Color = "Red"}, function(state)
+	local success, newRewardGui = pcall(function()
+		return PlayerGui:WaitForChild("newRewardGui")
+	end)
+
+	if success and newRewardGui then
+		local New_Frame = newRewardGui:FindFirstChild("NewFrame")
+		local Sound_Exp = newRewardGui:FindFirstChild("Sound")
+
+		if New_Frame then
+		 -- esconde se ativado
+			-- Percorre todos os ExpFrame dentro do NewFrame
+			for _, obj in ipairs(New_Frame:GetDescendants()) do
+				if obj:IsA("Frame") and obj.Name == "ExpFrame" then
+					obj.Visible = not state -- esconde se ativado
+				end
+			end
+		end
+
+		-- Controle do som
+		if Sound_Exp then
+			Sound_Exp.Volume = state and 0 or 1
+		end
+	end
+
+	-- Atualiza variável global/local
+	AF.Hide_New = state
+end)
+
+
 
 -- SliderOption para escolher o modo (afeta apenas farmBosses)
 local BossOption_Bombox = Regui.CreateSliderOption(FarmTab, {
