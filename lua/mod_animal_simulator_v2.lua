@@ -1268,9 +1268,9 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 
 		-- 🔹 Captura e controla o som em thread separada (garante que exista)
 		task.spawn(function()
-			local Sound_Exp = newRewardGui:WaitForChild("Sound", 5)
+			local Sound_Exp = newRewardGui.ExpFrame:WaitForChild("Sound", 5)
 			if Sound_Exp then
-				Sound_Exp.Volume = state and 0 or 1
+				Sound_Exp.Volume = state and 0.1 or 1
 			end
 		end)
 	end
