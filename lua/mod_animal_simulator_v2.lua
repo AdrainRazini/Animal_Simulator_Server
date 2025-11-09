@@ -1292,7 +1292,10 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 					end
 				end
 			end)
-
+			-- Ajustar som dinâmico
+            newRewardGui.ChildAdded:Connect(function()
+	            AjustarSons()
+            end)
 			-- Caso queira monitorar remoções (opcional)
 			newRewardGui.ChildRemoved:Connect(function()
 				AjustarSons()
