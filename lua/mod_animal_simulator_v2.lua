@@ -1252,7 +1252,7 @@ end)
 
 
 
--- 🌀 Toggle de AFK Camera
+-- 🌀 Toggle de Hud de Bosses hide
 local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp Hud Bosses", Color = "Red"}, function(state)
 	local success, newRewardGui = pcall(function()
 		return PlayerGui:WaitForChild("newRewardGui")
@@ -1266,7 +1266,6 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 			New_Frame.Visible = not state
 		end
 
-		-- 🔹 Captura e controla o som em thread separada (garante que exista)
 		-- 🔹 Captura e controla o som em thread separada (garante que exista e monitora novos)
 		task.spawn(function()
 			-- Função auxiliar para ajustar volume em todos os sons encontrados
@@ -1275,7 +1274,7 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 					if frame:IsA("Frame") and frame.Name:match("ExpFrame") then
 						local sound = frame:FindFirstChild("Sound")
 						if sound and sound:IsA("Sound") then
-							sound.Volume = state and 0.1 or 1
+							sound.Volume = state and 0 or 1
 						end
 					end
 				end
@@ -1289,7 +1288,7 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 				if child.Name:match("ExpFrame") then
 					local sound = child:WaitForChild("Sound", 5)
 					if sound and sound:IsA("Sound") then
-						sound.Volume = state and 0.1 or 1
+						sound.Volume = state and 0 or 1
 					end
 				end
 			end)
