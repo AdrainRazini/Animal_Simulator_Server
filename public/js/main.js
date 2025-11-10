@@ -1,6 +1,6 @@
 
 // js/main.js
-import { auth, db, provider } from "../../Auth";
+import { auth, db, provider } from "./Auth";
 import { signInWithPopup } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js";
 import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
 
@@ -29,3 +29,5 @@ export async function loginWithGoogle() {
     alert("Erro ao fazer login com o Google: " + (error?.message || error));
   }
 }
+
+// login com o servidor
