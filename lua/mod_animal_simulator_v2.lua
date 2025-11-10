@@ -1264,48 +1264,104 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 		end
 
 		task.spawn(function()
-			local function AjustarSons()
+			local function LimparExpFrames()
 				for _, frame in ipairs(newRewardGui:GetChildren()) do
 					if frame:IsA("Frame") and frame.Name:match("ExpFrame") then
-						local sound = frame:FindFirstChild("Sound")
-						if sound and sound:IsA("Sound") then
-							if state then
-								sound:Stop()         
-								sound.Volume = 0
-								sound.Playing = false
-							else
-								sound.Volume = 1
-							end
+						if state then
+							frame:Destroy() -- 💥 Remove completamente o ExpFrame
 						end
 					end
 				end
 			end
 
-			AjustarSons()
+			-- Executa imediatamente para limpar os existentes
+			LimparExpFrames()
 
-			-- 🔁 Detecta novos ExpFrame
+			-- 🔁 Monitora a criação de novos ExpFrames
 			newRewardGui.ChildAdded:Connect(function(child)
 				if child:IsA("Frame") and child.Name:match("ExpFrame") then
-					local sound = child:WaitForChild("Sound", 5)
-					if sound then
-						if state then
-							sound:Stop()
-							sound.Volume = 0
-							sound.Playing = false
-						else
-							sound.Volume = 1
-						end
+					if state then
+						task.defer(function()
+							-- Espera um pouco para garantir que carregou totalmente antes de destruir
+							task.wait(0.05)
+							if child and child.Parent then
+								child:Destroy()
+							end
+						end)
 					end
 				end
 			end)
 
-			-- Reajusta se remover/adicionar
-			newRewardGui.ChildRemoved:Connect(AjustarSons)
+			-- Se quiser, monitora remoções (só pra manter limpo)
+			newRewardGui.ChildRemoved:Connect(function()
+				if state then
+					LimparExpFrames()
+				end
+			end)
 		end)
 	end
 
 	AF.Hide_New = state
 end)
+
+
+--[[
+-- 🌀 Toggle de Hud de Bosses hide
+local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp Hud Bosses", Color = "Red"}, function(state)
+	local success, newRewardGui = pcall(function()
+		return PlayerGui:WaitForChild("newRewardGui")
+	end)
+
+	if success and newRewardGui then
+		local New_Frame = newRewardGui:FindFirstChild("NewFrame")
+
+		-- 🔹 Esconde ou mostra o frame principal
+		if New_Frame then
+			New_Frame.Visible = not state
+		end
+
+		-- 🔹 Captura e controla o som em thread separada (garante que exista e monitora novos)
+		task.spawn(function()
+			-- Função auxiliar para ajustar volume em todos os sons encontrados
+			local function AjustarSons()
+				for _, frame in ipairs(newRewardGui:GetChildren()) do
+					if frame:IsA("Frame") and frame.Name:match("ExpFrame") then
+						local sound = frame:FindFirstChild("Sound")
+						if sound and sound:IsA("Sound") then
+							sound.Volume = state and 0 or 1
+						end
+					end
+				end
+			end
+
+			-- Ajusta os existentes
+			AjustarSons()
+
+			-- 🔁 Monitora criação/remoção de novos ExpFrame (dinâmico)
+			newRewardGui.ChildAdded:Connect(function(child)
+				if child.Name:match("ExpFrame") then
+					local sound = child:WaitForChild("Sound", 5)
+					if sound and sound:IsA("Sound") then
+						sound.Volume = state and 0 or 1
+					end
+				end
+			end)
+			-- Ajustar som 
+            newRewardGui.ChildAdded:Connect(function()
+	            AjustarSons()
+            end)
+			-- Caso queira monitorar remoções (opcional)
+			newRewardGui.ChildRemoved:Connect(function()
+				AjustarSons()
+			end)
+		end)
+
+	end
+
+	-- 🔹 Atualiza variável global/local
+	AF.Hide_New = state
+end)
+]]
 
 
 -- SliderOption para escolher o modo (afeta apenas farmBosses)
