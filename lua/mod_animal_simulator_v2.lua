@@ -1251,7 +1251,6 @@ local ToggleBosses_AFK = Regui.CreateToggleboxe(FarmTab, {Text="AFK Camera Bosse
 end)
 
 
-
 -- 🌀 Toggle de Hud de Bosses hide
 local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp Hud Bosses", Color = "Red"}, function(state)
 	local success, newRewardGui = pcall(function()
@@ -1260,54 +1259,53 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 
 	if success and newRewardGui then
 		local New_Frame = newRewardGui:FindFirstChild("NewFrame")
-
-		-- 🔹 Esconde ou mostra o frame principal
 		if New_Frame then
 			New_Frame.Visible = not state
 		end
 
-		-- 🔹 Captura e controla o som em thread separada (garante que exista e monitora novos)
 		task.spawn(function()
-			-- Função auxiliar para ajustar volume em todos os sons encontrados
 			local function AjustarSons()
 				for _, frame in ipairs(newRewardGui:GetChildren()) do
 					if frame:IsA("Frame") and frame.Name:match("ExpFrame") then
 						local sound = frame:FindFirstChild("Sound")
 						if sound and sound:IsA("Sound") then
-							sound.Volume = state and 0 or 1
+							if state then
+								sound:Stop()         
+								sound.Volume = 0
+								sound.Playing = false
+							else
+								sound.Volume = 1
+							end
 						end
 					end
 				end
 			end
 
-			-- Ajusta os existentes
 			AjustarSons()
 
-			-- 🔁 Monitora criação/remoção de novos ExpFrame (dinâmico)
+			-- 🔁 Detecta novos ExpFrame
 			newRewardGui.ChildAdded:Connect(function(child)
-				if child.Name:match("ExpFrame") then
+				if child:IsA("Frame") and child.Name:match("ExpFrame") then
 					local sound = child:WaitForChild("Sound", 5)
-					if sound and sound:IsA("Sound") then
-						sound.Volume = state and 0 or 1
+					if sound then
+						if state then
+							sound:Stop()
+							sound.Volume = 0
+							sound.Playing = false
+						else
+							sound.Volume = 1
+						end
 					end
 				end
 			end)
-			-- Ajustar som dinâmico
-            newRewardGui.ChildAdded:Connect(function()
-	            AjustarSons()
-            end)
-			-- Caso queira monitorar remoções (opcional)
-			newRewardGui.ChildRemoved:Connect(function()
-				AjustarSons()
-			end)
-		end)
 
+			-- Reajusta se remover/adicionar
+			newRewardGui.ChildRemoved:Connect(AjustarSons)
+		end)
 	end
 
-	-- 🔹 Atualiza variável global/local
 	AF.Hide_New = state
 end)
-
 
 
 -- SliderOption para escolher o modo (afeta apenas farmBosses)
