@@ -1251,61 +1251,8 @@ local ToggleBosses_AFK = Regui.CreateToggleboxe(FarmTab, {Text="AFK Camera Bosse
 end)
 
 
--- 🌀 Toggle de Hud de Bosses hide
-local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp Hud Bosses", Color = "Red"}, function(state)
-	local success, newRewardGui = pcall(function()
-		return PlayerGui:WaitForChild("newRewardGui")
-	end)
-
-	if success and newRewardGui then
-		local New_Frame = newRewardGui:FindFirstChild("NewFrame")
-		if New_Frame then
-			New_Frame.Visible = not state
-		end
-
-		task.spawn(function()
-			local function LimparExpFrames()
-				for _, frame in ipairs(newRewardGui:GetChildren()) do
-					if frame:IsA("Frame") and frame.Name:match("ExpFrame") then
-						if state then
-							frame:Destroy() -- 💥 Remove completamente o ExpFrame
-						end
-					end
-				end
-			end
-
-			-- Executa imediatamente para limpar os existentes
-			LimparExpFrames()
-
-			-- 🔁 Monitora a criação de novos ExpFrames
-			newRewardGui.ChildAdded:Connect(function(child)
-				if child:IsA("Frame") and child.Name:match("ExpFrame") then
-					if state then
-						task.defer(function()
-							-- Espera um pouco para garantir que carregou totalmente antes de destruir
-							task.wait(0.05)
-							if child and child.Parent then
-								child:Destroy()
-							end
-						end)
-					end
-				end
-			end)
-
-			-- Se quiser, monitora remoções (só pra manter limpo)
-			newRewardGui.ChildRemoved:Connect(function()
-				if state then
-					LimparExpFrames()
-				end
-			end)
-		end)
-	end
-
-	AF.Hide_New = state
-end)
 
 
---[[
 -- 🌀 Toggle de Hud de Bosses hide
 local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp Hud Bosses", Color = "Red"}, function(state)
 	local success, newRewardGui = pcall(function()
@@ -1346,10 +1293,7 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 					end
 				end
 			end)
-			-- Ajustar som 
-            newRewardGui.ChildAdded:Connect(function()
-	            AjustarSons()
-            end)
+
 			-- Caso queira monitorar remoções (opcional)
 			newRewardGui.ChildRemoved:Connect(function()
 				AjustarSons()
@@ -1361,7 +1305,7 @@ local ToggleBosses_AFK_Hiden = Regui.CreateToggleboxe(FarmTab, {Text = "Hide Xp 
 	-- 🔹 Atualiza variável global/local
 	AF.Hide_New = state
 end)
-]]
+
 
 
 -- SliderOption para escolher o modo (afeta apenas farmBosses)
