@@ -152,6 +152,68 @@
         padding: 6px;
       }
     }
+
+.player-list {
+  margin-top: 20px;
+  background: rgba(22, 27, 34, 0.85);
+  backdrop-filter: blur(6px);
+  border-radius: 10px;
+  box-shadow: 0 0 10px #00bfa555;
+  overflow: hidden;
+  max-height: 400px; /* altura máxima */
+  display: flex;
+  flex-direction: column;
+}
+
+.player-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.player-list thead {
+  background: rgba(0, 191, 165, 0.2);
+  color: #00ffa5;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  z-index: 2;
+}
+
+.player-list th,
+.player-list td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #2d333b;
+  white-space: nowrap;
+}
+
+.player-list tbody {
+  display: block;
+  overflow-y: auto;
+  max-height: 340px; /* define scroll interno */
+}
+
+.player-list thead, 
+.player-list tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.player-list tbody::-webkit-scrollbar {
+  width: 6px;
+}
+
+.player-list tbody::-webkit-scrollbar-thumb {
+  background-color: #00bfa5;
+  border-radius: 4px;
+}
+
+.player-list tbody::-webkit-scrollbar-track {
+  background-color: #1b1f25;
+}
+
+
   </style>
 </head>
 <body>
@@ -201,6 +263,8 @@
   </table>
 </div>
 
+
+
 <!-- 🔒 Controle de acesso -->
 <script type="module">
   import { auth, db } from "./js/Auth.js";
@@ -240,18 +304,19 @@
   const tableBody = document.getElementById("playersTable");
   const addBtn = document.getElementById("addBtn");
   let allPlayers = [];
-
-  async function loadPlayers() {
-    tableBody.innerHTML = `<tr><td colspan="4">Carregando...</td></tr>`;
-    try {
-      const res = await fetch("/api/players");
-      const players = await res.json();
-      allPlayers = players;
-      renderPlayers(players);
-    } catch (err) {
-      tableBody.innerHTML = `<tr><td colspan="4">❌ Erro: ${err.message}</td></tr>`;
-    }
+async function loadPlayers() {
+  tableBody.innerHTML = `<tr><td colspan="4">Carregando...</td></tr>`;
+  try {
+    const res = await fetch("/api/players");
+    const players = await res.json();
+    allPlayers = players;
+    renderPlayers(players);
+    document.querySelector(".player-list tbody").scrollTop = 0; // 🆕
+  } catch (err) {
+    tableBody.innerHTML = `<tr><td colspan="4">❌ Erro: ${err.message}</td></tr>`;
   }
+}
+
 
   function renderPlayers(players) {
     if (!players.length) {
@@ -310,6 +375,8 @@
     await res.json();
     loadPlayers();
   });
+
+  
 </script>
 
 </body>
