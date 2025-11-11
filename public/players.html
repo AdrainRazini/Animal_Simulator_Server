@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Gerenciamento de Jogadores</title>
+
+  <!-- Estilos -->
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/modal.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="shortcut icon" href="img/ADN_Red.png" type="image/x-icon" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #00bfa5;
+      text-align: center;
+    }
+
+    .player-list {
+      margin-top: 30px;
+      background: #161b22;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00bfa555;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #2d333b;
+      text-align: left;
+    }
+
+    th {
+      color: #00ffa5;
+    }
+
+    .add-form {
+      margin-top: 20px;
+      background: #1c2128;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .add-form input, .add-form select {
+      padding: 10px;
+      margin-right: 10px;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .add-form button {
+      background: #00bfa5;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .add-form button:hover {
+      background: #00ffa5;
+      color: #000;
+    }
+
+    .ban-btn {
+      background: #ff4444;
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .ban-btn:hover {
+      background: #ff7777;
+    }
+
+    .unban-btn {
+      background: #00bfa5;
+      border: none;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .unban-btn:hover {
+      background: #00ffa5;
+      color: #000;
+    }
+
+    #adminLock {
+      text-align: center;
+      margin-top: 80px;
+      font-size: 1.2em;
+      color: #ff6666;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎮 Gerenciamento de Jogadores</h1>
+  <div id="adminLock">⛔ Acesso negado. Apenas administradores podem ver esta página.</div>
+
+  <div class="add-form" id="adminContent" style="display:none;">
+    <h3>Adicionar novo jogador</h3>
+    <input type="text" id="nameInput" placeholder="Nome do jogador" />
+    <input type="number" id="idInput" placeholder="ID do jogador" />
+    <select id="tagInput">
+      <option value="Livre">Livre</option>
+      <option value="Banido">Banido</option>
+    </select>
+    <button id="addBtn">Adicionar</button>
+  </div>
+
+  <div class="player-list" id="playerList" style="display:none;">
+    <h3>Lista de jogadores cadastrados</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>ID</th>
+          <th>Tag</th>
+          <th>Ação</th>
+        </tr>
+      </thead>
+      <tbody id="playersTable">
+        <tr><td colspan="4">Carregando jogadores...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 🔒 Controle de Acesso (verifica se o user é admin) -->
+  <script type="module">
+    import { auth, db } from "./js/Auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+    const adminContent = document.getElementById("adminContent");
+    const playerList = document.getElementById("playerList");
+    const adminLock = document.getElementById("adminLock");
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        alert("⚠️ Faça login para acessar esta página.");
+        window.location.href = "index.html";
+        return;
+      }
+
+      const ref = doc(db, "users", user.email);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists() || snap.data().role !== "admin") {
+        adminLock.style.display = "block";
+        adminContent.style.display = "none";
+        playerList.style.display = "none";
+        return;
+      }
+
+      // ✅ Exibe o conteúdo de admin
+      adminLock.style.display = "none";
+      adminContent.style.display = "block";
+      playerList.style.display = "block";
+
+      // Depois que liberar, carrega os jogadores
+      loadPlayers();
+    });
+  </script>
+
+  <!-- 🔧 Scripts da API -->
+  <script>
+    const tableBody = document.getElementById("playersTable");
+    const addBtn = document.getElementById("addBtn");
+
+    // 🔹 Carregar todos os jogadores
+    async function loadPlayers() {
+      tableBody.innerHTML = `<tr><td colspan="4">Carregando...</td></tr>`;
+      try {
+        const res = await fetch("/api/players");
+        if (!res.ok) throw new Error("Erro ao buscar dados");
+
+        const players = await res.json();
+
+        if (!players || players.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="4">Nenhum jogador cadastrado</td></tr>`;
+          return;
+        }
+
+        tableBody.innerHTML = players.map(p => `
+          <tr>
+            <td>${p.Name}</td>
+            <td>${p.Id_player}</td>
+            <td style="color: ${p.Tag === "Banido" ? "red" : "#00ffa5"};">${p.Tag}</td>
+            <td>
+              ${p.Tag === "Banido"
+                ? `<button class="unban-btn" onclick="toggleBan('${p.Id_player}', 'Livre')">Desbanir</button>`
+                : `<button class="ban-btn" onclick="toggleBan('${p.Id_player}', 'Banido')">Banir</button>`}
+            </td>
+          </tr>
+        `).join("");
+      } catch (err) {
+        tableBody.innerHTML = `<tr><td colspan="4">❌ Erro: ${err.message}</td></tr>`;
+      }
+    }
+
+    // 🔹 Alternar Banido/Livre
+    async function toggleBan(Id_player, newTag) {
+      try {
+        const res = await fetch(`/api/players/${Id_player}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ Tag: newTag }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("❌ " + (data.error || "Erro ao atualizar jogador"));
+          return;
+        }
+
+        alert(`🔄 Jogador agora está marcado como: ${newTag}`);
+        loadPlayers();
+      } catch (err) {
+        alert("❌ Erro: " + err.message);
+      }
+    }
+
+    // 🔹 Adicionar novo jogador
+    addBtn.addEventListener("click", async () => {
+      const Name = document.getElementById("nameInput").value.trim();
+      const Id_player = document.getElementById("idInput").value.trim();
+      const Tag = document.getElementById("tagInput").value;
+
+      if (!Name || !Id_player) {
+        alert("⚠️ Preencha todos os campos!");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/players", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ Name, Id_player, Tag }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert("❌ " + (data.error || "Erro ao enviar dados"));
+          return;
+        }
+
+        alert(data.message || "✅ Jogador salvo com sucesso!");
+        document.getElementById("nameInput").value = "";
+        document.getElementById("idInput").value = "";
+        loadPlayers();
+      } catch (err) {
+        alert("❌ Erro de rede: " + err.message);
+      }
+    });
+  </script>
+
+</body>
+</html>

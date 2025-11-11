@@ -5,7 +5,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
 import { db } from "./firebase.js";
 
 // Corrigir __dirname em ES Modules
@@ -29,6 +29,107 @@ app.use("/lua", express.static(path.join(__dirname, "lua")));
 
 // Serve HTML, CSS, JS da pasta "public"
 app.use(express.static(path.join(__dirname, "public")));
+
+
+// ====================
+// 👥 API: Gerenciar Jogadores
+// ====================
+
+// ➕ Adicionar ou Atualizar Jogador
+app.post("/api/players", async (req, res) => {
+  const { Name, Id_player, Tag } = req.body;
+
+  // 🧩 Validação básica
+  if (!Name) return res.status(400).json({ error: "Campo 'Name' é obrigatório" });
+  if (!Id_player) return res.status(400).json({ error: "Campo 'Id_player' é obrigatório" });
+  if (!/^\d+$/.test(Id_player)) return res.status(400).json({ error: "O campo 'Id_player' deve conter apenas números" });
+  if (!Tag) return res.status(400).json({ error: "Campo 'Tag' é obrigatório" });
+
+  const numericId = Number(Id_player);
+
+  try {
+    const playersRef = collection(db, "players");
+    const snapshot = await getDocs(playersRef);
+
+    // 🔍 Verifica se o jogador já existe pelo Id_player
+    const existingDoc = snapshot.docs.find(doc => doc.data().Id_player === numericId);
+
+    if (existingDoc) {
+      const data = existingDoc.data();
+
+      // 🛠️ Atualiza caso o nome ou tag sejam diferentes
+      if (data.Name !== Name || data.Tag !== Tag) {
+        await updateDoc(existingDoc.ref, {
+          Name,
+          Tag,
+          updatedAt: new Date().toISOString(),
+        });
+        console.log(`♻️ Jogador atualizado: ${Name} (${numericId}) [${Tag}]`);
+        return res.json({ success: true, message: "Jogador atualizado com sucesso" });
+      }
+
+      // ✅ Caso o jogador já exista igual
+      return res.json({ success: false, message: "Jogador já cadastrado e atualizado" });
+    }
+
+    // ➕ Adiciona novo jogador
+    await addDoc(playersRef, {
+      Name,
+      Id_player: numericId,
+      Tag,
+      createdAt: new Date().toISOString(),
+    });
+
+    console.log(`👤 Novo jogador adicionado: ${Name} (${numericId}) [${Tag}]`);
+    res.json({ success: true, message: "Jogador adicionado com sucesso" });
+  } catch (err) {
+    console.error("❌ Erro ao adicionar/atualizar jogador:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 📜 Listar todos os jogadores
+app.get("/api/players", async (req, res) => {
+  try {
+    const snapshot = await getDocs(collection(db, "players"));
+    const players = snapshot.docs.map(doc => doc.data());
+    res.json(players);
+  } catch (err) {
+    console.error("❌ Erro ao listar jogadores:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// 🛠 Atualizar tag de jogador (banir/desbanir)
+app.put("/api/players/:id", async (req, res) => {
+  const { id } = req.params;
+  const { Tag } = req.body;
+
+  if (!Tag) return res.status(400).json({ error: "Campo 'Tag' é obrigatório" });
+
+  try {
+    const snapshot = await getDocs(collection(db, "players"));
+    const playerDoc = snapshot.docs.find(d => d.data().Id_player == id);
+
+    if (!playerDoc) {
+      return res.status(404).json({ error: "Jogador não encontrado" });
+    }
+
+    // ✅ Atualiza corretamente usando o ref do documento
+    await updateDoc(playerDoc.ref, { Tag, updatedAt: new Date().toISOString() });
+
+    console.log(`⚙️ Jogador ${id} atualizado para: ${Tag}`);
+    res.json({ success: true, message: `Jogador ${id} atualizado para ${Tag}` });
+  } catch (err) {
+    console.error("❌ Erro ao atualizar jogador:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+
 
 // ====================
 // 🎵 API: Gerenciar IDs de músicas (Firebase)
