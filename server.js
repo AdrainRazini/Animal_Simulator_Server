@@ -16,6 +16,11 @@ const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, "data");
 const musicsFile = path.join(dataDir, "musics.json");
 const musicsObjFile = path.join(dataDir, "musics_obj.json");
+if (!fs.existsSync(dataDir)) {
+  fs.mkdirSync(dataDir, { recursive: true });
+  console.log("📁 Pasta 'data' criada automaticamente");
+}
+
 
 // Função utilitária para ler JSON local
 function readLocalCache(file) {
