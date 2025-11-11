@@ -258,11 +258,28 @@ app.get("/api/musics_obj", async (req, res) => {
 });
 
 
-// 📜 GET: Retornar todos os objetos no formato LUA (Module)
+
+// 📜 GET: Retornar todos os objetos no formato LUA (Module) usando cache local
 app.get("/api/musics_obj_lua", async (req, res) => {
   try {
-    const snapshot = await getDocs(collection(db, "musics_obj"));
-    const musics = snapshot.docs.map(doc => doc.data());
+    let musics;
+
+    // 🔹 Tenta ler do Firestore
+    try {
+      const snapshot = await getDocs(collection(db, "musics_obj"));
+      musics = snapshot.docs.map(doc => doc.data());
+
+      // Atualiza o cache local
+      writeLocalCache(musicsObjFile, musics);
+    } catch (firestoreErr) {
+      console.warn("⚠️ Firestore não disponível, usando cache local", firestoreErr);
+      musics = readLocalCache(musicsObjFile);
+    }
+
+    // Se nem Firestore nem cache funcionarem
+    if (!musics || musics.length === 0) {
+      return res.status(404).send("-- Nenhum dado disponível");
+    }
 
     // Gera a string Lua — exemplo: return { {Name="A",Obj=123}, {Name="B",Obj=456} }
     const luaTable = `return {\n${
@@ -278,6 +295,7 @@ app.get("/api/musics_obj_lua", async (req, res) => {
     res.status(500).send("-- Erro ao gerar tabela Lua: " + err.message);
   }
 });
+
 
 
 
