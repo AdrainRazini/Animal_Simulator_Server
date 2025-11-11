@@ -128,7 +128,7 @@ local function GetObjFromAPI(url)
 		local list = {}
 		for _, item in pairs(data) do
 			table.insert(list, {
-				Name = tostring(item.Name),
+				name = tostring(item.Name),
 				Obj = tostring(item.Obj)
 			})
 		end
@@ -145,12 +145,61 @@ local function GetObjFromAPI(url)
 	end
 end
 
+
+
+-- URLs JSON locais
+local Json_Url_Musics = "https://animal-simulator-server.vercel.app/data/musics.json"
+local Json_Url_Musics_Obj = "https://animal-simulator-server.vercel.app/data/musics_obj.json"
+
+-- 🔹 Cache local para evitar múltiplas requisições
+local cacheListaid
+local cacheListMusics
+
+-- Função genérica para buscar JSON
+local function GetFromJSON(url)
+	local cache = (url == Json_Url_Musics) and cacheListaid or cacheListMusics
+	if cache then return cache end
+
+	local success, result = pcall(function()
+		local response = game:HttpGet(url)
+		local data = HttpService:JSONDecode(response)
+		return data
+	end)
+
+	if success then
+		if url == Json_Url_Musics then
+			cacheListaid = result
+		else
+			cacheListMusics = result
+		end
+		print("✅ Dados carregados de JSON:", url, "Total:", #result)
+		return result
+	else
+		warn("⚠️ Falha ao carregar JSON:", url, result)
+		-- fallback seguro
+		if url == Json_Url_Musics_Obj then
+			cacheListMusics = { {name = "Nill", Obj = 0} }
+			return cacheListMusics
+		else
+			cacheListaid = {}
+			return {}
+		end
+	end
+end
+
+-- 🔹 Busca as listas
+local Listaid = GetFromJSON(Json_Url_Musics)
+local listMusics = GetFromJSON(Json_Url_Musics_Obj)
+
+
+
+--[[
 -- 🔹 Busca as duas listas
 local Listaid = GetFromAPI(Json_Url_Musics)
 local listMusics = {}
 
 local success, result = pcall(function()
-	local response = game:HttpGet(API_URL_Obj_Lua)
+	local response = game:HttpGet(Json_Url_Musics)
 	task.wait(0.5)
 	return loadstring(response)() 
 end)
@@ -165,7 +214,7 @@ else
 
 	}
 end
-
+]]
 
 
 -- REMOTES
