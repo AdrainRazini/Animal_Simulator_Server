@@ -1,5 +1,5 @@
 // ====================
-// 🌐 Servidor Principal Unificado
+// Servidor Principal Unificado
 // ====================
 import express from "express";
 import cors from "cors";
@@ -47,12 +47,14 @@ function writeLocalCache(file, data) {
   }
 }
 
-
+// ====================
+//  Porta 3000 
+// ====================
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ====================
-// 🔧 Middlewares
+// Middlewares
 // ====================
 app.use(cors({ origin: "*" }));
 app.use(express.json());
@@ -60,9 +62,8 @@ app.use(express.json());
 // ====================
 // 📁 Servir arquivos estáticos
 // ====================
-// Serve os arquivos .lua (tipo GitHub Raw)
+// Serve os arquivos .json (tipo GitHub Raw)
 app.use("/data", express.static(path.join(__dirname, "data")));
-
 // Serve os arquivos .lua (tipo GitHub Raw)
 app.use("/lua", express.static(path.join(__dirname, "lua")));
 // Serve HTML, CSS, JS da pasta "public"
