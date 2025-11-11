@@ -30,54 +30,72 @@
     }
 
     .player-list {
-      margin-top: 30px;
+      margin-top: 20px;
       background: #161b22;
-      padding: 20px;
+      padding: 15px;
       border-radius: 10px;
       box-shadow: 0 0 10px #00bfa555;
+      max-height: 500px;
+      overflow-y: auto;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
+      font-size: 0.95em;
     }
 
     th, td {
-      padding: 10px;
+      padding: 8px;
       border-bottom: 1px solid #2d333b;
       text-align: left;
+      white-space: nowrap;
     }
 
     th {
       color: #00ffa5;
+      position: sticky;
+      top: 0;
+      background: #161b22;
+      z-index: 2;
     }
 
-    .add-form {
-      margin-top: 20px;
+    tr:hover {
+      background-color: #1e252f;
+    }
+
+    .add-form, .search-box {
       background: #1c2128;
-      padding: 15px;
+      padding: 12px;
       border-radius: 8px;
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
     }
 
-    .add-form input, .add-form select {
-      padding: 10px;
-      margin-right: 10px;
+    .add-form input, .add-form select, .search-box input {
+      flex: 1;
+      padding: 8px;
       border: none;
       border-radius: 5px;
       outline: none;
+      min-width: 120px;
     }
 
-    .add-form button {
+    .add-form button, .search-box button {
       background: #00bfa5;
       color: #fff;
       border: none;
-      padding: 10px 15px;
+      padding: 8px 14px;
       border-radius: 5px;
       cursor: pointer;
       transition: 0.2s;
+      font-weight: bold;
     }
 
-    .add-form button:hover {
+    .add-form button:hover, .search-box button:hover {
       background: #00ffa5;
       color: #000;
     }
@@ -86,7 +104,7 @@
       background: #ff4444;
       border: none;
       color: #fff;
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 5px;
       cursor: pointer;
       transition: 0.2s;
@@ -100,7 +118,7 @@
       background: #00bfa5;
       border: none;
       color: #fff;
-      padding: 6px 12px;
+      padding: 5px 10px;
       border-radius: 5px;
       cursor: pointer;
       transition: 0.2s;
@@ -118,201 +136,181 @@
       color: #ff6666;
       display: none;
     }
+
+    /* 🔍 Barra de pesquisa */
+    .search-box i {
+      color: #00ffa5;
+      margin-right: 5px;
+    }
+
+    /* Responsivo */
+    @media (max-width: 768px) {
+      table {
+        font-size: 0.8em;
+      }
+      th, td {
+        padding: 6px;
+      }
+    }
   </style>
 </head>
 <body>
 
-
-<!-- Logo Fixa -->
-<div class="fixed-logo" id="logoPreview">
-  <img src="img/ADN_ Neon.png" alt="Logo">
-  <div class="logo-tooltip" id="tooltipPreview">
-    <video autoplay loop muted playsinline>
-      <source src="img/ADN_RX.mp4" type="video/mp4">
-    </video>
-  </div>
-</div>
-<!-- 🌐 Menu Desktop -->
+<!-- 🌐 Navbar -->
 <div class="navbar">
   <a href="index.html"><i class="fas fa-home"></i> Voltar</a>
   <a href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Discord</a>
 </div>
 
-<!-- 🍔 Menu Mobile -->
-<div class="hamburger" id="hamburgerMenu">
-  <span></span>
-  <span></span>
-  <span></span>
+<h1>🎮 Gerenciamento de Jogadores</h1>
+<div id="adminLock">⛔ Acesso negado. Apenas administradores podem ver esta página.</div>
+
+<!-- 🔍 Pesquisa -->
+<div class="search-box" id="searchBox" style="display:none;">
+  <i class="fas fa-search"></i>
+  <input type="text" id="searchInput" placeholder="Pesquisar por nome, ID ou tag..." />
+  <button onclick="searchPlayers()">Buscar</button>
+  <button onclick="loadPlayers()">Limpar</button>
 </div>
 
-<div class="side-menu" id="sideMenu">
-  <a href="index.html"><i class="fas fa-home"></i> Voltar</a>
-  <a href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Discord</a>
+<!-- ➕ Adicionar -->
+<div class="add-form" id="adminContent" style="display:none;">
+  <input type="text" id="nameInput" placeholder="Nome do jogador" />
+  <input type="number" id="idInput" placeholder="ID do jogador" />
+  <select id="tagInput">
+    <option value="Livre">Livre</option>
+    <option value="Banido">Banido</option>
+  </select>
+  <button id="addBtn">Adicionar</button>
 </div>
 
+<!-- 🧾 Lista -->
+<div class="player-list" id="playerList" style="display:none;">
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>ID</th>
+        <th>Tag</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody id="playersTable">
+      <tr><td colspan="4">Carregando jogadores...</td></tr>
+    </tbody>
+  </table>
+</div>
 
-  <h1>🎮 Gerenciamento de Jogadores</h1>
-  <div id="adminLock">⛔ Acesso negado. Apenas administradores podem ver esta página.</div>
+<!-- 🔒 Controle de acesso -->
+<script type="module">
+  import { auth, db } from "./js/Auth.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
 
-  <div class="add-form" id="adminContent" style="display:none;">
-    <h3>Adicionar novo jogador</h3>
-    <input type="text" id="nameInput" placeholder="Nome do jogador" />
-    <input type="number" id="idInput" placeholder="ID do jogador" />
-    <select id="tagInput">
-      <option value="Livre">Livre</option>
-      <option value="Banido">Banido</option>
-    </select>
-    <button id="addBtn">Adicionar</button>
-  </div>
+  const adminContent = document.getElementById("adminContent");
+  const playerList = document.getElementById("playerList");
+  const adminLock = document.getElementById("adminLock");
+  const searchBox = document.getElementById("searchBox");
 
-  <div class="player-list" id="playerList" style="display:none;">
-    <h3>Lista de jogadores cadastrados</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Nome</th>
-          <th>ID</th>
-          <th>Tag</th>
-          <th>Ação</th>
-        </tr>
-      </thead>
-      <tbody id="playersTable">
-        <tr><td colspan="4">Carregando jogadores...</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- 🔒 Controle de Acesso (verifica se o user é admin) -->
-  <script type="module">
-    import { auth, db } from "./js/Auth.js";
-    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
-
-    const adminContent = document.getElementById("adminContent");
-    const playerList = document.getElementById("playerList");
-    const adminLock = document.getElementById("adminLock");
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        alert("⚠️ Faça login para acessar esta página.");
-        window.location.href = "index.html";
-        return;
-      }
-
-      const ref = doc(db, "users", user.email);
-      const snap = await getDoc(ref);
-
-      if (!snap.exists() || snap.data().role !== "admin") {
-        adminLock.style.display = "block";
-        adminContent.style.display = "none";
-        playerList.style.display = "none";
-        return;
-      }
-
-      // ✅ Exibe o conteúdo de admin
-      adminLock.style.display = "none";
-      adminContent.style.display = "block";
-      playerList.style.display = "block";
-
-      // Depois que liberar, carrega os jogadores
-      loadPlayers();
-    });
-  </script>
-
-  <!-- 🔧 Scripts da API -->
-  <script>
-    const tableBody = document.getElementById("playersTable");
-    const addBtn = document.getElementById("addBtn");
-
-    // 🔹 Carregar todos os jogadores
-    async function loadPlayers() {
-      tableBody.innerHTML = `<tr><td colspan="4">Carregando...</td></tr>`;
-      try {
-        const res = await fetch("/api/players");
-        if (!res.ok) throw new Error("Erro ao buscar dados");
-
-        const players = await res.json();
-
-        if (!players || players.length === 0) {
-          tableBody.innerHTML = `<tr><td colspan="4">Nenhum jogador cadastrado</td></tr>`;
-          return;
-        }
-
-        tableBody.innerHTML = players.map(p => `
-          <tr>
-            <td>${p.Name}</td>
-            <td>${p.Id_player}</td>
-            <td style="color: ${p.Tag === "Banido" ? "red" : "#00ffa5"};">${p.Tag}</td>
-            <td>
-              ${p.Tag === "Banido"
-                ? `<button class="unban-btn" onclick="toggleBan('${p.Id_player}', 'Livre')">Desbanir</button>`
-                : `<button class="ban-btn" onclick="toggleBan('${p.Id_player}', 'Banido')">Banir</button>`}
-            </td>
-          </tr>
-        `).join("");
-      } catch (err) {
-        tableBody.innerHTML = `<tr><td colspan="4">❌ Erro: ${err.message}</td></tr>`;
-      }
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
+      alert("⚠️ Faça login para acessar esta página.");
+      window.location.href = "index.html";
+      return;
     }
 
-    // 🔹 Alternar Banido/Livre
-    async function toggleBan(Id_player, newTag) {
-      try {
-        const res = await fetch(`/api/players/${Id_player}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ Tag: newTag }),
-        });
+    const ref = doc(db, "users", user.email);
+    const snap = await getDoc(ref);
 
-        const data = await res.json();
-
-        if (!res.ok) {
-          alert("❌ " + (data.error || "Erro ao atualizar jogador"));
-          return;
-        }
-
-        alert(`🔄 Jogador agora está marcado como: ${newTag}`);
-        loadPlayers();
-      } catch (err) {
-        alert("❌ Erro: " + err.message);
-      }
+    if (!snap.exists() || snap.data().role !== "admin") {
+      adminLock.style.display = "block";
+      return;
     }
 
-    // 🔹 Adicionar novo jogador
-    addBtn.addEventListener("click", async () => {
-      const Name = document.getElementById("nameInput").value.trim();
-      const Id_player = document.getElementById("idInput").value.trim();
-      const Tag = document.getElementById("tagInput").value;
+    // ✅ Exibe tudo
+    adminLock.style.display = "none";
+    adminContent.style.display = "flex";
+    playerList.style.display = "block";
+    searchBox.style.display = "flex";
+    loadPlayers();
+  });
+</script>
 
-      if (!Name || !Id_player) {
-        alert("⚠️ Preencha todos os campos!");
-        return;
-      }
+<!-- ⚙️ Scripts da API -->
+<script>
+  const tableBody = document.getElementById("playersTable");
+  const addBtn = document.getElementById("addBtn");
+  let allPlayers = [];
 
-      try {
-        const res = await fetch("/api/players", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ Name, Id_player, Tag }),
-        });
+  async function loadPlayers() {
+    tableBody.innerHTML = `<tr><td colspan="4">Carregando...</td></tr>`;
+    try {
+      const res = await fetch("/api/players");
+      const players = await res.json();
+      allPlayers = players;
+      renderPlayers(players);
+    } catch (err) {
+      tableBody.innerHTML = `<tr><td colspan="4">❌ Erro: ${err.message}</td></tr>`;
+    }
+  }
 
-        const data = await res.json();
+  function renderPlayers(players) {
+    if (!players.length) {
+      tableBody.innerHTML = `<tr><td colspan="4">Nenhum jogador encontrado</td></tr>`;
+      return;
+    }
 
-        if (!res.ok) {
-          alert("❌ " + (data.error || "Erro ao enviar dados"));
-          return;
-        }
+    tableBody.innerHTML = players.map(p => `
+      <tr>
+        <td>${p.Name}</td>
+        <td>${p.Id_player}</td>
+        <td style="color: ${p.Tag === "Banido" ? "red" : "#00ffa5"};">${p.Tag}</td>
+        <td>
+          ${p.Tag === "Banido"
+            ? `<button class="unban-btn" onclick="toggleBan('${p.Id_player}', 'Livre')">Desbanir</button>`
+            : `<button class="ban-btn" onclick="toggleBan('${p.Id_player}', 'Banido')">Banir</button>`}
+        </td>
+      </tr>
+    `).join("");
+  }
 
-        alert(data.message || "✅ Jogador salvo com sucesso!");
-        document.getElementById("nameInput").value = "";
-        document.getElementById("idInput").value = "";
-        loadPlayers();
-      } catch (err) {
-        alert("❌ Erro de rede: " + err.message);
-      }
+  function searchPlayers() {
+    const query = document.getElementById("searchInput").value.toLowerCase().trim();
+    if (!query) return renderPlayers(allPlayers);
+
+    const filtered = allPlayers.filter(p =>
+      String(p.Id_player).includes(query) ||
+      p.Name.toLowerCase().includes(query) ||
+      p.Tag.toLowerCase().includes(query)
+    );
+
+    renderPlayers(filtered);
+  }
+
+  async function toggleBan(Id_player, newTag) {
+    const res = await fetch(`/api/players/${Id_player}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Tag: newTag }),
     });
-  </script>
+    await res.json();
+    loadPlayers();
+  }
 
-  <script type="module" src="js/script.js"></script>
+  addBtn.addEventListener("click", async () => {
+    const Name = document.getElementById("nameInput").value.trim();
+    const Id_player = document.getElementById("idInput").value.trim();
+    const Tag = document.getElementById("tagInput").value;
+    if (!Name || !Id_player) return alert("⚠️ Preencha todos os campos!");
+
+    const res = await fetch("/api/players", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Name, Id_player, Tag }),
+    });
+    await res.json();
+    loadPlayers();
+  });
+</script>
 
 </body>
 </html>
