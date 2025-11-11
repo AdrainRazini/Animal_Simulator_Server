@@ -5,8 +5,9 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
-import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc} from "firebase/firestore";
 import { db } from "./firebase.js";
+
 
 // Corrigir __dirname em ES Modules
 const __filename = fileURLToPath(import.meta.url);
