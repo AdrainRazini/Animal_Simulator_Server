@@ -127,6 +127,31 @@ app.put("/api/players/:id", async (req, res) => {
   }
 });
 
+// 🔍 Obter Tag de jogador por ID
+app.get("/api/player/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Busca na coleção "players"
+    const snapshot = await getDocs(collection(db, "players"));
+    const playerDoc = snapshot.docs.find(doc => doc.data().Id_player == id);
+
+    if (!playerDoc) {
+      return res.status(404).json({ success: false, message: "Jogador não encontrado" });
+    }
+
+    const data = playerDoc.data();
+    res.json({
+      success: true,
+      Id_player: data.Id_player,
+      Name: data.Name,
+      Tag: data.Tag,
+    });
+  } catch (err) {
+    console.error("❌ Erro ao buscar jogador:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 
 
