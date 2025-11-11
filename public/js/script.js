@@ -21,25 +21,48 @@ function openModal(name, obj) {
   modalObj.textContent = `🆔 ID: ${obj}`;
   modal.classList.add("show");
 
-  if (!modal.querySelector(".copy-id-btn")) {
-    const copyBtn = document.createElement("button");
+  // procura o botão (cria se não existir)
+  let copyBtn = modal.querySelector(".copy-id-btn");
+  if (!copyBtn) {
+    copyBtn = document.createElement("button");
     copyBtn.textContent = "📋 Copiar ID";
     copyBtn.className = "copy-id-btn";
-    copyBtn.addEventListener("click", () => {
-      navigator.clipboard.writeText(obj);
-      copyBtn.textContent = "✅ Copiado!";
-      copyBtn.style.background = "linear-gradient(135deg, #2ecc71, #00ffb3)";
-      setTimeout(() => {
-        copyBtn.textContent = "📋 Copiar ID";
-        copyBtn.style.background = "linear-gradient(135deg, #00ffb3, #00b3ff)";
-      }, 2000);
-    });
     modal.querySelector(".modal").appendChild(copyBtn);
   }
+
+  // 🔹 remove qualquer evento anterior
+  const newBtn = copyBtn.cloneNode(true);
+  copyBtn.replaceWith(newBtn);
+  copyBtn = newBtn;
+
+  // 🔹 adiciona evento atualizado com o novo obj
+  copyBtn.addEventListener("click", () => {
+    navigator.clipboard.writeText(obj);
+    copyBtn.textContent = "✅ Copiado!";
+    copyBtn.style.background = "linear-gradient(135deg, #2ecc71, #00ffb3)";
+    setTimeout(() => {
+      copyBtn.textContent = "📋 Copiar ID";
+      copyBtn.style.background = "linear-gradient(135deg, #00ffb3, #00b3ff)";
+    }, 2000);
+  });
 
   modal.style.display = "flex";
   modal.style.opacity = "1";
 }
+
+// === 🔹 Botão de copiar código (inalterado) ===
+document.getElementById("copyBtn").addEventListener("click", () => {
+  const luaCode = document.getElementById("luaCode").innerText;
+  navigator.clipboard.writeText(luaCode);
+  const btn = document.getElementById("copyBtn");
+  btn.textContent = "✅ Copiado!";
+  btn.style.background = "#2ecc71";
+  setTimeout(() => {
+    btn.textContent = "📋 Copiar";
+    btn.style.background = "#2575fc";
+  }, 2000);
+});
+
 
 closeBtn.addEventListener("click", () => (modal.style.display = "none"));
 modal.addEventListener("click", e => {
@@ -214,15 +237,5 @@ logo.addEventListener("click", () => {
   tooltip.style.display = open ? "flex" : "none";
 });
 
-// === 🔹 Botão de copiar código (inalterado) ===
-document.getElementById("copyBtn").addEventListener("click", () => {
-  const luaCode = document.getElementById("luaCode").innerText;
-  navigator.clipboard.writeText(luaCode);
-  const btn = document.getElementById("copyBtn");
-  btn.textContent = "✅ Copiado!";
-  btn.style.background = "#2ecc71";
-  setTimeout(() => {
-    btn.textContent = "📋 Copiar";
-    btn.style.background = "#2575fc";
-  }, 2000);
-});
+
+
