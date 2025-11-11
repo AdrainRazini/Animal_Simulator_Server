@@ -97,8 +97,11 @@ local HttpService = game:GetService("HttpService")
 
 -- URLs da API
 local API_URL = "https://animal-simulator-server.vercel.app/api/musics"
-local API_URL_Obj = "https://animal-simulator-server.vercel.app/api/musics_obj"
+local API_URL_Obj = "https://animal-simulator-server.vercel.app/api/musics_obj" 
 local API_URL_Obj_Lua = "https://animal-simulator-server.vercel.app/api/musics_obj_lua"
+
+local Json_Url_Musics = "https://animal-simulator-server.vercel.app/data/musics.json"
+local Json_Url_Musics_Obj = "https://animal-simulator-server.vercel.app/data/musics_obj.json"
 
 -- Função genérica para buscar de qualquer endpoint
 local function GetFromAPI(url)
@@ -125,7 +128,7 @@ local function GetObjFromAPI(url)
 		local list = {}
 		for _, item in pairs(data) do
 			table.insert(list, {
-				Name = tostring(item.name),
+				name = tostring(item.Name),
 				Obj = tostring(item.Obj)
 			})
 		end
@@ -143,9 +146,10 @@ local function GetObjFromAPI(url)
 end
 
 -- 🔹 Busca as duas listas
-local Listaid = GetFromAPI(API_URL)
-local listMusics = {}
+local Listaid = GetFromAPI(Json_Url_Musics)
+local listMusics = GetObjFromAPI(Json_Url_Musics_Obj)
 
+--[[
 local success, result = pcall(function()
 	local response = game:HttpGet(API_URL_Obj_Lua)
 	task.wait(0.5)
@@ -162,7 +166,7 @@ else
 
 	}
 end
-
+]]
 
 
 -- REMOTES
