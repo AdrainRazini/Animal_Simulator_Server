@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Users</title>
+  
+  <!-- Links de estilo -->
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/modal.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="shortcut icon" href="img/ADN_Red.png" type="image/x-icon" />
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css">
+ 
+  <!-- Scripts -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f8f8f8; }
+    table { border-collapse: collapse; width: 100%; background: #fff; }
+    th, td { padding: 12px; border: 1px solid #ccc; text-align: left; vertical-align: middle; }
+    th { background: #eee; }
+    select { padding: 4px; }
+    img { border-radius: 50%; }
+    .msg {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      min-height: 24px;
+    }
+    .msg.success { color: green; }
+    .msg.error { color: red; }
+  </style>
+</head>
+<body>
+
+   <!-- Botão Voltar ao Topo -->
+<button id="btn-topo" title="Voltar ao topo">
+  <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- Botão Voltar para o Início (index.html) -->
+<button id="btn-index" title="Voltar à página inicial">
+  <i class="fas fa-home"></i>
+</button>
+
+<script>
+
+    const btnTopo = document.getElementById("btn-topo");
+const btnIndex = document.getElementById("btn-index");
+
+// Mostrar os botões ao rolar
+window.addEventListener("scroll", () => {
+  const mostrar = window.scrollY > 300;
+  btnTopo.style.display = mostrar ? "block" : "none";
+  btnIndex.style.display = mostrar ? "block" : "block";
+});
+
+// Voltar ao topo suavemente
+btnTopo.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+// Voltar à página index.html
+btnIndex.addEventListener("click", () => {
+  window.location.href = "index.html";
+});
+
+
+</script>
+    <!--
+    <div id="loading">
+    <div class="spinner"></div>
+    Carregando...
+  </div>
+-->
+  <h2>Gerenciar Papéis de Usuários</h2>
+  <input type="text" id="search" placeholder="Buscar por nome ou email..." style="padding: 8px; width: 100%; max-width: 400px; margin-bottom: 12px;" />
+  <div id="user-table">Carregando usuários...</div>
+  <div class="msg" id="msg"></div>
+
+  <script type="module" src="./js/Auth.js"></script>
+
+  <script type="module">
+    import { auth, db } from "./js/Auth.js";
+    import {
+      collection, getDocs, getDoc, updateDoc, doc, deleteField
+    } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js";
+
+    const userTable = document.getElementById("user-table");
+    const msgBox = document.getElementById("msg");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        userTable.innerHTML = "<p>Você precisa estar logado para ver essa página.</p>";
+        return;
+      }
+
+      try {
+        const userDocRef = doc(db, "users", user.email);
+        const userSnap = await getDoc(userDocRef);
+
+        if (!userSnap.exists() || userSnap.data().role !== "admin") {
+          userTable.innerHTML = "<p>Acesso negado. Apenas administradores podem ver esta página.</p>";
+          return;
+        }
+
+        renderUserTable(user.email);
+      } catch (err) {
+        userTable.innerHTML = "<p>Erro ao verificar permissões.</p>";
+        console.error(err);
+      }
+    });
+
+    async function renderUserTable(loggedUserEmail) {
+      const usersRef = collection(db, "users");
+      const snapshot = await getDocs(usersRef);
+      let html = `
+        <table>
+          <tr>
+            <th>Foto</th>
+            <th>Email</th>
+            <th>Nome</th>
+            <th>Último Login</th>
+            <th>Papel</th>
+          </tr>
+      `;
+
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+        const nome = data.name || data.nome || "-";
+        const papel = data.role || "user";
+        const foto = data.photo || "";
+        const lastLogin = data.lastLogin
+          ? new Date(data.lastLogin).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })
+          : "-";
+
+        html += `
+          <tr>
+            <td>${foto ? `<img src="${foto}" alt="foto" width="32" height="32">` : "-"}</td>
+            <td>${id}</td>
+            <td>${nome}</td>
+            <td>${lastLogin}</td>
+            <td>
+              <select data-id="${id}" class="role-select" ${id === loggedUserEmail ? 'title="Você não pode mudar seu próprio papel"' : ''}>
+                <option value="user" ${papel === "user" ? "selected" : ""}>User</option>
+                <option value="admin" ${papel === "admin" ? "selected" : ""}>Admin</option>
+              </select>
+            </td>
+          </tr>
+        `;
+      });
+
+      html += `</table>`;
+      userTable.innerHTML = html;
+
+      // Busca por nome ou email
+      document.getElementById("search").addEventListener("input", filterTable);
+
+      function filterTable() {
+        const searchTerm = document.getElementById("search").value.toLowerCase();
+        const rows = document.querySelectorAll("#user-table table tr");
+
+        rows.forEach((row, index) => {
+          if (index === 0) return; // cabeçalho
+
+          const email = row.cells[1].textContent.toLowerCase();
+          const nome = row.cells[2].textContent.toLowerCase();
+
+          const match = email.includes(searchTerm) || nome.includes(searchTerm);
+          row.style.display = match ? "" : "none";
+        });
+      }
+
+      // Troca de papel (admin/user)
+      document.querySelectorAll(".role-select").forEach(select => {
+        select.setAttribute('data-old-role', select.value);
+
+        select.addEventListener("change", async (e) => {
+          const userId = e.target.dataset.id;
+          const newRole = e.target.value;
+
+          if (userId === auth.currentUser.email && newRole !== "admin") {
+            alert("Você não pode remover seu próprio papel de admin.");
+            e.target.value = "admin";
+            return;
+          }
+
+          if (!confirm(`Confirma mudar o papel de ${userId} para ${newRole}?`)) {
+            e.target.value = e.target.getAttribute('data-old-role') || "user";
+            return;
+          }
+
+          e.target.disabled = true;
+          setMsg("Atualizando...", "info");
+
+          try {
+            const userRef = doc(db, "users", userId);
+
+            if (newRole === "user") {
+              await updateDoc(userRef, { role: deleteField() });
+            } else {
+              await updateDoc(userRef, { role: newRole });
+            }
+
+            setMsg(`Papel de ${userId} atualizado para ${newRole}`, "success");
+            e.target.setAttribute('data-old-role', newRole);
+          } catch (err) {
+            setMsg(`Erro ao atualizar papel de ${userId}`, "error");
+            console.error(err);
+            e.target.value = e.target.getAttribute('data-old-role') || "user";
+          } finally {
+            e.target.disabled = false;
+            setTimeout(() => clearMsg(), 4000);
+          }
+        });
+      });
+    }
+
+    function setMsg(text, type) {
+      msgBox.textContent = text;
+      msgBox.className = "msg";
+      if (type === "success") msgBox.classList.add("success");
+      else if (type === "error") msgBox.classList.add("error");
+      else if (type === "info") msgBox.classList.add("info");
+    }
+
+    function clearMsg() {
+      msgBox.textContent = "";
+      msgBox.className = "msg";
+    }
+  </script>
+  <script type="module" src="js/script.js"></script>
+
+</body>
+</html>
