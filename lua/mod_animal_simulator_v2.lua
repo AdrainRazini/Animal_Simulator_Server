@@ -128,7 +128,7 @@ local function GetObjFromAPI(url)
 		local list = {}
 		for _, item in pairs(data) do
 			table.insert(list, {
-				name = tostring(item.Name),
+				Name = tostring(item.Name),
 				Obj = tostring(item.Obj)
 			})
 		end
@@ -147,9 +147,8 @@ end
 
 -- 🔹 Busca as duas listas
 local Listaid = GetFromAPI(Json_Url_Musics)
-local listMusics = GetObjFromAPI(Json_Url_Musics_Obj)
+local listMusics = {}
 
---[[
 local success, result = pcall(function()
 	local response = game:HttpGet(API_URL_Obj_Lua)
 	task.wait(0.5)
@@ -166,7 +165,7 @@ else
 
 	}
 end
-]]
+
 
 
 -- REMOTES
