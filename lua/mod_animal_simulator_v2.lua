@@ -144,7 +144,7 @@ local function GetObjFromAPI(url)
 		return {}
 	end
 end
--
+
 -- 🔹 Busca as duas listas
 local Listaid = GetFromAPI(Json_Url_Musics)
 local listMusics = {}
