@@ -187,18 +187,36 @@ app.put("/api/players/:id", async (req, res) => {
 });
 
 // Obter jogador por ID
+// 🔹 Obter jogador por ID
 app.get("/api/player/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    // Busca o jogador usando função auxiliar (retorna doc do Firestore ou undefined)
     const playerDoc = await getPlayerById(id);
-    if (!playerDoc) return res.status(404).json({ success: false, message: "Jogador não encontrado" });
 
+    if (!playerDoc) {
+      // Caso não exista, retorna 404
+      return res.status(404).json({
+        success: false,
+        message: "Jogador não encontrado"
+      });
+    }
+
+    // Retorna dados principais do jogador
     const data = playerDoc.data();
-    res.json({ success: true, Id_player: data.Id_player, Name: data.Name, Tag: data.Tag });
+    res.json({
+      success: true,
+      Id_player: data.Id_player,
+      Name: data.Name,
+      Tag: data.Tag // "Livre", "Banido" ou outra tag
+    });
   } catch (err) {
     console.error("❌ Erro ao buscar jogador:", err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
   }
 });
 
