@@ -31,7 +31,7 @@ const memoryCache = {
   musics_obj: { data: [], lastFetch: 0 },
   musics: { data: [], lastFetch: 0 },
 };
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+const CACHE_TTL = 1 * 60 * 60 * 1000; // 1 h
 
 
 
