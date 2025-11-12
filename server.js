@@ -24,6 +24,16 @@ if (!fs.existsSync(dataDir)) {
   console.log("📁 Pasta 'data' criada automaticamente");
 }
 
+// ====================
+// 🔸 Cache em memória para reduzir leituras no Firestore
+// ====================
+const memoryCache = {
+  musics_obj: { data: [], lastFetch: 0 },
+  musics: { data: [], lastFetch: 0 },
+};
+const CACHE_TTL = 60 * 1000; // 60 segundos
+
+
 const isReadOnly = process.env.VERCEL || process.env.AWS_REGION || process.env.NODE_ENV === "production";
 
 // Ler cache local (somente local)
@@ -240,20 +250,34 @@ app.post("/api/musics_obj", async (req, res) => {
 });
 
 
-// 📜 GET: Retornar todos os objetos no formato Lua/table
+// 📜 GET: Retornar todos os objetos no formato JSON (com cache em memória + local)
 app.get("/api/musics_obj", async (req, res) => {
   try {
-    // 🔹 Prioriza o cache local
-    const cache = readLocalCache(musicsObjFile);
-    if (cache.length > 0) {
-      return res.json(cache);
+    const now = Date.now();
+
+    // 🔹 1. Cache em memória (RAM)
+    if (memoryCache.musics_obj.data.length > 0 && (now - memoryCache.musics_obj.lastFetch < CACHE_TTL)) {
+      console.log("⚡ /api/musics_obj → cache: memória");
+      return res.json(memoryCache.musics_obj.data);
     }
 
-    // 🔹 Se vazio, busca do Firestore e atualiza o cache
+    // 🔹 2. Cache local (fs)
+    const localCache = readLocalCache(musicsObjFile);
+    if (localCache.length > 0) {
+      memoryCache.musics_obj = { data: localCache, lastFetch: now };
+      console.log("⚡ /api/musics_obj → cache: disco");
+      return res.json(localCache);
+    }
+
+    // 🔹 3. Firestore (fallback)
     const snapshot = await getDocs(collection(db, "musics_obj"));
     const musics = snapshot.docs.map(doc => doc.data());
+
+    // Atualiza caches
+    memoryCache.musics_obj = { data: musics, lastFetch: now };
     writeLocalCache(musicsObjFile, musics);
 
+    console.log("⚡ /api/musics_obj → fonte: Firestore");
     res.json(musics);
   } catch (err) {
     console.error("❌ Erro ao buscar musics_obj:", err);
@@ -337,18 +361,34 @@ app.post("/api/musics", async (req, res) => {
 });
 
 
-// 📜 Listar todos os IDs
+// 📜 GET: Listar todos os IDs (com cache em memória + local)
 app.get("/api/musics", async (req, res) => {
   try {
-    let cache = readLocalCache(musicsFile);
-    if (cache.length > 0) {
-      return res.json(cache);
+    const now = Date.now();
+
+    // 🔹 1. Cache em memória (RAM)
+    if (memoryCache.musics.data.length > 0 && (now - memoryCache.musics.lastFetch < CACHE_TTL)) {
+      console.log("⚡ /api/musics → cache: memória");
+      return res.json(memoryCache.musics.data);
     }
 
+    // 🔹 2. Cache local (fs)
+    const localCache = readLocalCache(musicsFile);
+    if (localCache.length > 0) {
+      memoryCache.musics = { data: localCache, lastFetch: now };
+      console.log("⚡ /api/musics → cache: disco");
+      return res.json(localCache);
+    }
+
+    // 🔹 3. Firestore (fallback)
     const snapshot = await getDocs(collection(db, "musics"));
     const list = snapshot.docs.map(doc => doc.data().id);
 
+    // Atualiza caches
+    memoryCache.musics = { data: list, lastFetch: now };
     writeLocalCache(musicsFile, list);
+
+    console.log("⚡ /api/musics → fonte: Firestore");
     res.json(list);
   } catch (err) {
     console.error("❌ Erro ao ler do Firestore:", err);
@@ -356,12 +396,14 @@ app.get("/api/musics", async (req, res) => {
   }
 });
 
+
 // ====================
 // 🏠 Página inicial
 // ====================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
+
 
 // ====================
 // 🚀 Inicialização Híbrida (Local + Vercel)
