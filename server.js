@@ -291,39 +291,42 @@ app.get("/api/musics_obj", async (req, res) => {
 // GET: Retornar todos os objetos no formato LUA (Module) usando cache local
 app.get("/api/musics_obj_lua", async (req, res) => {
   try {
-    let musics;
+    const now = Date.now();
 
-    // Tenta ler do Firestore
-    try {
-      const snapshot = await getDocs(collection(db, "musics_obj"));
-      musics = snapshot.docs.map(doc => doc.data());
-
-      // Atualiza o cache local
-      writeLocalCache(musicsObjFile, musics);
-    } catch (firestoreErr) {
-      console.warn("⚠️ Firestore não disponível, usando cache local", firestoreErr);
-      musics = readLocalCache(musicsObjFile);
+    // ⚡ 1. Cache em memória
+    if (memoryCache.musics_obj.data.length > 0 && (now - memoryCache.musics_obj.lastFetch < CACHE_TTL)) {
+      console.log("⚡ /api/musics_obj_lua → cache: memória");
+      return res.type("text/plain").send(convertToLua(memoryCache.musics_obj.data));
     }
 
-    // Se nem Firestore nem cache funcionarem
-    if (!musics || musics.length === 0) {
-      return res.status(404).send("-- Nenhum dado disponível");
+    //  2. Cache local (disco)
+    const localCache = readLocalCache(musicsObjFile);
+    if (localCache.length > 0) {
+      memoryCache.musics_obj = { data: localCache, lastFetch: now };
+      console.log("⚡ /api/musics_obj_lua → cache: disco");
+      return res.type("text/plain").send(convertToLua(localCache));
     }
 
-    // Gera a string Lua — exemplo: return { {Name="A",Obj=123}, {Name="B",Obj=456} }
-    const luaTable = `return {\n${
-      musics
-        .map(m => `  {name="${m.Name}", Obj=${m.Obj}}`)
-        .join(",\n")
-    }\n}`;
+    //  3. Firestore (fallback)
+    const snapshot = await getDocs(collection(db, "musics_obj"));
+    const musics = snapshot.docs.map(doc => doc.data());
 
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.send(luaTable);
+    memoryCache.musics_obj = { data: musics, lastFetch: now };
+    writeLocalCache(musicsObjFile, musics);
+    console.log("⚡ /api/musics_obj_lua → fonte: Firestore");
+
+    res.type("text/plain").send(convertToLua(musics));
+
   } catch (err) {
     console.error("❌ Erro ao gerar musics_obj_lua:", err);
-    res.status(500).send("-- Erro ao gerar tabela Lua: " + err.message);
+    res.status(500).send("-- Erro ao gerar tabela Lua");
   }
 });
+
+function convertToLua(musics) {
+  return `return {\n${musics.map(m => `  {name="${m.Name}", Obj=${m.Obj}}`).join(",\n")}\n}`;
+}
+
 
 
 
