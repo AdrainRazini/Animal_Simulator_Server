@@ -2845,7 +2845,7 @@ Music_Gui = Regui.CreateButton(MusicTab, {
 	loadstring(game:HttpGet("https://animal-simulator-server.vercel.app/lua/Music_ids.lua"))() 
 end)
 
---[[
+
 local Save_Id = "0"
 
 -- Label que mostra info da música
@@ -2960,7 +2960,6 @@ local MusicButton = Regui.CreateButton(MusicTab, {
 	end
 end)
 
-]]
 
 local Label_Mousic_Info_Meme = Regui.CreateLabel(MusicTab, {Text = "-------------------------------", Color = "White", Alignment = "Center"})
 MemeBacon = Regui.CreateImage(MusicTab, {Name = "Meme (Noob anime)", Transparence = 1, Alignment = "Center", Id_Image = "rbxassetid://78869446287665", Size_Image = UDim2.new(0, 75, 0, 75)  })
