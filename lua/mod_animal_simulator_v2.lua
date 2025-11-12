@@ -148,7 +148,6 @@ end
 -- 🔹 Busca as duas listas
 local Listaid = GetFromAPI(Json_Url_Musics)
 local listMusics = {}
-
 local success, result = pcall(function()
 	local response = game:HttpGet(API_URL_Obj_Lua)
 	task.wait(0.5)
@@ -161,7 +160,7 @@ if success and type(result) == "table" then
 else
 	warn("⚠️ Falha ao carregar músicas da API, usando lista padrão.")
 	listMusics = {
-		{name = "Nill", Obj = 0},
+		{name = "Loading ...", Obj = 0},
 
 	}
 end
@@ -2488,10 +2487,6 @@ local Label_Game_Set_Music = Regui.CreateLabel(MusicTab, {Text = "--------------
 
 
 
-
-
-
-
 -- Função unificada para compatibilidade com vários executores
 local function getRequest()
 	return (syn and syn.request)
@@ -2776,6 +2771,7 @@ Music_Gui = Regui.CreateButton(MusicTab, {
 	loadstring(game:HttpGet("https://animal-simulator-server.vercel.app/lua/Music_ids.lua"))() 
 end)
 
+--[[
 local Save_Id = "0"
 
 -- Label que mostra info da música
@@ -2890,7 +2886,7 @@ local MusicButton = Regui.CreateButton(MusicTab, {
 	end
 end)
 
-
+]]
 
 local Label_Mousic_Info_Meme = Regui.CreateLabel(MusicTab, {Text = "-------------------------------", Color = "White", Alignment = "Center"})
 MemeBacon = Regui.CreateImage(MusicTab, {Name = "Meme (Noob anime)", Transparence = 1, Alignment = "Center", Id_Image = "rbxassetid://78869446287665", Size_Image = UDim2.new(0, 75, 0, 75)  })
