@@ -101,20 +101,30 @@ local function getplayer(id)
 		return HttpService:GetAsync(url)
 	end)
 
-	if success then
-		local data = HttpService:JSONDecode(response)
-		if data.success and data.Tag then
-			return data.Tag -- "Livre", "Banido" ou outra tag
-		else
-			return "Desconhecido" -- API retornou sucesso falso
-		end
-	else
+	if not success then
 		warn("Erro ao consultar API:", response)
 		return "Erro" -- erro de rede ou GetAsync
 	end
+
+	local ok, data = pcall(function()
+		return HttpService:JSONDecode(response)
+	end)
+
+	if not ok then
+		warn("Erro ao decodificar JSON:", data)
+		return "Erro"
+	end
+
+	if data.success and data.Tag then
+		return data.Tag -- "Livre", "Banido" ou outra tag
+	elseif data.success == false then
+		return "Desconhecido" -- API retornou sucesso falso
+	else
+		return "Erro" -- qualquer outro caso
+	end
 end
 
--- 🔹 Uso
+
 local tag = getplayer(player.UserId)
 
 -- 🔹 Define título da notificação
