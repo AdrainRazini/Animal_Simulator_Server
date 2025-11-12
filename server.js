@@ -24,9 +24,11 @@ if (!fs.existsSync(dataDir)) {
   console.log("📁 Pasta 'data' criada automaticamente");
 }
 
+const isReadOnly = process.env.VERCEL || process.env.AWS_REGION || process.env.NODE_ENV === "production";
 
-// Função utilitária para ler JSON local
+// Ler cache local (somente local)
 function readLocalCache(file) {
+  if (isReadOnly) return []; // 🔒 não tenta ler em ambiente read-only
   try {
     if (fs.existsSync(file)) {
       return JSON.parse(fs.readFileSync(file, "utf-8"));
@@ -38,14 +40,16 @@ function readLocalCache(file) {
   }
 }
 
-// Função para salvar JSON local
+// Salvar cache local (somente local)
 function writeLocalCache(file, data) {
+  if (isReadOnly) return; // 🔒 ignora em produção
   try {
     fs.writeFileSync(file, JSON.stringify(data, null, 2));
   } catch (err) {
     console.error(`❌ Erro ao salvar cache local: ${file}`, err);
   }
 }
+
 
 // ====================
 //  Porta 3000 
