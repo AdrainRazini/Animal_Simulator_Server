@@ -30,8 +30,9 @@ if (!fs.existsSync(dataDir)) {
 const memoryCache = {
   musics_obj: { data: [], lastFetch: 0 },
   musics: { data: [], lastFetch: 0 },
+  players: { data: [], lastFetch: 0 },
 };
-const CACHE_TTL = 1 * 60 * 60 * 1000; // 1 h
+const CACHE_TTL = 5 * 60 * 60 * 1000; // 5 h
 
 
 
@@ -89,52 +90,52 @@ app.use(express.static(path.join(__dirname, "public")));
 // API: Gerenciar Jogadores
 // ====================
 
+
+
+// Função auxiliar para buscar jogador por ID
+async function getPlayerById(id) {
+  const numericId = Number(id);
+  const q = query(collection(db, "players"), where("Id_player", "==", numericId));
+  const snapshot = await getDocs(q);
+  return snapshot.docs[0]; // retorna undefined se não existir
+}
+
 // Adicionar ou Atualizar Jogador
 app.post("/api/players", async (req, res) => {
   const { Name, Id_player, Tag } = req.body;
 
-  // 🧩 Validação básica
   if (!Name) return res.status(400).json({ error: "Campo 'Name' é obrigatório" });
   if (!Id_player) return res.status(400).json({ error: "Campo 'Id_player' é obrigatório" });
   if (!/^\d+$/.test(Id_player)) return res.status(400).json({ error: "O campo 'Id_player' deve conter apenas números" });
   if (!Tag) return res.status(400).json({ error: "Campo 'Tag' é obrigatório" });
 
-  const numericId = Number(Id_player);
-
   try {
-    const playersRef = collection(db, "players");
-    const snapshot = await getDocs(playersRef);
-
-    //  Verifica se o jogador já existe pelo Id_player
-    const existingDoc = snapshot.docs.find(doc => doc.data().Id_player === numericId);
+    const numericId = Number(Id_player);
+    const existingDoc = await getPlayerById(numericId);
 
     if (existingDoc) {
       const data = existingDoc.data();
 
-      //  Atualiza caso o nome ou tag sejam diferentes
       if (data.Name !== Name || data.Tag !== Tag) {
-        await updateDoc(existingDoc.ref, {
-          Name,
-          Tag,
-          updatedAt: new Date().toISOString(),
-        });
+        await updateDoc(existingDoc.ref, { Name, Tag, updatedAt: new Date().toISOString() });
         console.log(`♻️ Jogador atualizado: ${Name} (${numericId}) [${Tag}]`);
+
+        // Atualiza cache
+        memoryCache.players.data = memoryCache.players.data.map(p => p.Id_player === numericId ? { Name, Id_player: numericId, Tag } : p);
         return res.json({ success: true, message: "Jogador atualizado com sucesso" });
       }
 
-      //  Caso o jogador já exista igual
       return res.json({ success: false, message: "Jogador já cadastrado e atualizado" });
     }
 
-    //  Adiciona novo jogador
-    await addDoc(playersRef, {
-      Name,
-      Id_player: numericId,
-      Tag,
-      createdAt: new Date().toISOString(),
-    });
-
+    // Adiciona novo jogador
+    const newPlayer = { Name, Id_player: numericId, Tag, createdAt: new Date().toISOString() };
+    await addDoc(collection(db, "players"), newPlayer);
     console.log(`👤 Novo jogador adicionado: ${Name} (${numericId}) [${Tag}]`);
+
+    // Atualiza cache
+    memoryCache.players.data.push(newPlayer);
+
     res.json({ success: true, message: "Jogador adicionado com sucesso" });
   } catch (err) {
     console.error("❌ Erro ao adicionar/atualizar jogador:", err);
@@ -142,11 +143,18 @@ app.post("/api/players", async (req, res) => {
   }
 });
 
-//  Listar todos os jogadores
+// Listar todos os jogadores (com cache)
 app.get("/api/players", async (req, res) => {
   try {
+    const now = Date.now();
+    if (memoryCache.players.data.length > 0 && (now - memoryCache.players.lastFetch < memoryCache.CACHE_TTL)) {
+      return res.json(memoryCache.players.data);
+    }
+
     const snapshot = await getDocs(collection(db, "players"));
     const players = snapshot.docs.map(doc => doc.data());
+
+    memoryCache.players = { data: players, lastFetch: now };
     res.json(players);
   } catch (err) {
     console.error("❌ Erro ao listar jogadores:", err);
@@ -154,8 +162,7 @@ app.get("/api/players", async (req, res) => {
   }
 });
 
-
-//  Atualizar tag de jogador (banir/desbanir)
+// Atualizar tag de jogador (banir/desbanir)
 app.put("/api/players/:id", async (req, res) => {
   const { id } = req.params;
   const { Tag } = req.body;
@@ -163,17 +170,15 @@ app.put("/api/players/:id", async (req, res) => {
   if (!Tag) return res.status(400).json({ error: "Campo 'Tag' é obrigatório" });
 
   try {
-    const snapshot = await getDocs(collection(db, "players"));
-    const playerDoc = snapshot.docs.find(d => d.data().Id_player == id);
+    const playerDoc = await getPlayerById(id);
+    if (!playerDoc) return res.status(404).json({ error: "Jogador não encontrado" });
 
-    if (!playerDoc) {
-      return res.status(404).json({ error: "Jogador não encontrado" });
-    }
-
-    //  Atualiza corretamente usando o ref do documento
     await updateDoc(playerDoc.ref, { Tag, updatedAt: new Date().toISOString() });
-
     console.log(`⚙️ Jogador ${id} atualizado para: ${Tag}`);
+
+    // Atualiza cache
+    memoryCache.players.data = memoryCache.players.data.map(p => p.Id_player == id ? { ...p, Tag } : p);
+
     res.json({ success: true, message: `Jogador ${id} atualizado para ${Tag}` });
   } catch (err) {
     console.error("❌ Erro ao atualizar jogador:", err);
@@ -181,26 +186,16 @@ app.put("/api/players/:id", async (req, res) => {
   }
 });
 
-//  Obter Tag de jogador por ID
+// Obter jogador por ID
 app.get("/api/player/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Busca na coleção "players"
-    const snapshot = await getDocs(collection(db, "players"));
-    const playerDoc = snapshot.docs.find(doc => doc.data().Id_player == id);
-
-    if (!playerDoc) {
-      return res.status(404).json({ success: false, message: "Jogador não encontrado" });
-    }
+    const playerDoc = await getPlayerById(id);
+    if (!playerDoc) return res.status(404).json({ success: false, message: "Jogador não encontrado" });
 
     const data = playerDoc.data();
-    res.json({
-      success: true,
-      Id_player: data.Id_player,
-      Name: data.Name,
-      Tag: data.Tag,
-    });
+    res.json({ success: true, Id_player: data.Id_player, Name: data.Name, Tag: data.Tag });
   } catch (err) {
     console.error("❌ Erro ao buscar jogador:", err);
     res.status(500).json({ success: false, error: err.message });
