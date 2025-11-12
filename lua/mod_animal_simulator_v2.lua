@@ -94,7 +94,7 @@ end
 
 -- teste de Api Das Tags
 
--- Função para buscar jogador na API
+-- 🔹 Função para buscar jogador na API
 local function getplayer(id)
 	local success, response = pcall(function()
 		local url = "https://animal-simulator-server.vercel.app/api/player/" .. tostring(id)
@@ -103,34 +103,28 @@ local function getplayer(id)
 
 	if success then
 		local data = HttpService:JSONDecode(response)
-		if data.success then
-			return data.Tag -- retorna "Livre", "Banido" ou qualquer tag da API
+		if data.success and data.Tag then
+			return data.Tag -- "Livre", "Banido" ou outra tag
 		else
-			return "Desconhecido"
+			return "Desconhecido" -- API retornou sucesso falso
 		end
 	else
 		warn("Erro ao consultar API:", response)
-		return "Erro"
+		return "Erro" -- erro de rede ou GetAsync
 	end
 end
 
-
--- Uso
+-- 🔹 Uso
 local tag = getplayer(player.UserId)
 
--- Define a mensagem de alerta dependendo da tag
-local titleText
-if tag == "Livre" then
-	titleText = "Alert: Livre"
-elseif tag == "Banido" then
-	titleText = "Alert: Banido"
-elseif tag == "Erro" then
-	titleText = "Alert: Erro ao consultar API"
-else
-	titleText = "Alert: Tag desconhecida (" .. tag .. ")"
-end
+-- 🔹 Define título da notificação
+local titleText = ({
+	Livre = "Alert: Livre",
+	Banido = "Alert: Banido",
+	Erro = "Alert: Erro ao consultar API",
+})[tag] or ("Alert: Tag desconhecida (" .. tostring(tag) .. ")")
 
--- Notificação
+-- 🔹 Notificação
 Regui.Notifications(PlayerGui, {
 	Title = titleText,
 	Text = "Stats Tag",
@@ -138,9 +132,10 @@ Regui.Notifications(PlayerGui, {
 	Tempo = 10
 })
 
+-- 🔹 Log no console
 if tag == "Banido" then
 	print("Banido")
-	return
+	return -- interrompe execução
 elseif tag == "Livre" then
 	print("Ativo")
 elseif tag == "Erro" then
