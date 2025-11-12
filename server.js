@@ -85,10 +85,10 @@ app.use(express.static(path.join(__dirname, "public")));
 
 
 // ====================
-// 👥 API: Gerenciar Jogadores
+// API: Gerenciar Jogadores
 // ====================
 
-// ➕ Adicionar ou Atualizar Jogador
+// Adicionar ou Atualizar Jogador
 app.post("/api/players", async (req, res) => {
   const { Name, Id_player, Tag } = req.body;
 
@@ -104,13 +104,13 @@ app.post("/api/players", async (req, res) => {
     const playersRef = collection(db, "players");
     const snapshot = await getDocs(playersRef);
 
-    // 🔍 Verifica se o jogador já existe pelo Id_player
+    //  Verifica se o jogador já existe pelo Id_player
     const existingDoc = snapshot.docs.find(doc => doc.data().Id_player === numericId);
 
     if (existingDoc) {
       const data = existingDoc.data();
 
-      // 🛠️ Atualiza caso o nome ou tag sejam diferentes
+      //  Atualiza caso o nome ou tag sejam diferentes
       if (data.Name !== Name || data.Tag !== Tag) {
         await updateDoc(existingDoc.ref, {
           Name,
@@ -121,11 +121,11 @@ app.post("/api/players", async (req, res) => {
         return res.json({ success: true, message: "Jogador atualizado com sucesso" });
       }
 
-      // ✅ Caso o jogador já exista igual
+      //  Caso o jogador já exista igual
       return res.json({ success: false, message: "Jogador já cadastrado e atualizado" });
     }
 
-    // ➕ Adiciona novo jogador
+    //  Adiciona novo jogador
     await addDoc(playersRef, {
       Name,
       Id_player: numericId,
@@ -141,7 +141,7 @@ app.post("/api/players", async (req, res) => {
   }
 });
 
-// 📜 Listar todos os jogadores
+//  Listar todos os jogadores
 app.get("/api/players", async (req, res) => {
   try {
     const snapshot = await getDocs(collection(db, "players"));
@@ -154,7 +154,7 @@ app.get("/api/players", async (req, res) => {
 });
 
 
-// 🛠 Atualizar tag de jogador (banir/desbanir)
+//  Atualizar tag de jogador (banir/desbanir)
 app.put("/api/players/:id", async (req, res) => {
   const { id } = req.params;
   const { Tag } = req.body;
@@ -169,7 +169,7 @@ app.put("/api/players/:id", async (req, res) => {
       return res.status(404).json({ error: "Jogador não encontrado" });
     }
 
-    // ✅ Atualiza corretamente usando o ref do documento
+    //  Atualiza corretamente usando o ref do documento
     await updateDoc(playerDoc.ref, { Tag, updatedAt: new Date().toISOString() });
 
     console.log(`⚙️ Jogador ${id} atualizado para: ${Tag}`);
@@ -180,7 +180,7 @@ app.put("/api/players/:id", async (req, res) => {
   }
 });
 
-// 🔍 Obter Tag de jogador por ID
+//  Obter Tag de jogador por ID
 app.get("/api/player/:id", async (req, res) => {
   const { id } = req.params;
 
@@ -210,10 +210,10 @@ app.get("/api/player/:id", async (req, res) => {
 
 
 // ====================
-// 🎵 API: Gerenciar IDs de músicas (Firebase)
+//  API: Gerenciar IDs de músicas (Firebase)
 // ====================
 
-// 🎵 API: Gerenciar IDs de músicas (Firebase) — VERSÃO ATUALIZADA
+//  API: Gerenciar IDs de músicas (Firebase) — VERSÃO ATUALIZADA
 app.post("/api/musics_obj", async (req, res) => {
   const Name = req.body.Name || req.body.name;
   const Obj = req.body.Obj || req.body.obj;
@@ -223,7 +223,7 @@ app.post("/api/musics_obj", async (req, res) => {
 
   const numericObj = Number(Obj);
 
-  // 🔹 Lê cache local primeiro
+  //  Lê cache local primeiro
   let cache = readLocalCache(musicsObjFile);
   const existsCache = cache.some(item => item.Obj === numericObj);
   if (existsCache) {
@@ -231,12 +231,12 @@ app.post("/api/musics_obj", async (req, res) => {
   }
 
   try {
-    // 🔹 Verifica também no Firestore (caso cache esteja desatualizado)
+    //  Verifica também no Firestore (caso cache esteja desatualizado)
     const snapshot = await getDocs(collection(db, "musics_obj"));
     const exists = snapshot.docs.some(doc => doc.data().Obj === numericObj);
     if (exists) return res.status(400).json({ error: "Obj já existe no Firestore" });
 
-    // 🔹 Adiciona no Firestore e no cache local
+    //  Adiciona no Firestore e no cache local
     await addDoc(collection(db, "musics_obj"), { Name, Obj: numericObj });
     cache.push({ Name, Obj: numericObj });
     writeLocalCache(musicsObjFile, cache);
@@ -250,18 +250,18 @@ app.post("/api/musics_obj", async (req, res) => {
 });
 
 
-// 📜 GET: Retornar todos os objetos no formato JSON (com cache em memória + local)
+// GET: Retornar todos os objetos no formato JSON (com cache em memória + local)
 app.get("/api/musics_obj", async (req, res) => {
   try {
     const now = Date.now();
 
-    // 🔹 1. Cache em memória (RAM)
+    // 1. Cache em memória (RAM)
     if (memoryCache.musics_obj.data.length > 0 && (now - memoryCache.musics_obj.lastFetch < CACHE_TTL)) {
       console.log("⚡ /api/musics_obj → cache: memória");
       return res.json(memoryCache.musics_obj.data);
     }
 
-    // 🔹 2. Cache local (fs)
+    //  2. Cache local (fs)
     const localCache = readLocalCache(musicsObjFile);
     if (localCache.length > 0) {
       memoryCache.musics_obj = { data: localCache, lastFetch: now };
@@ -269,7 +269,7 @@ app.get("/api/musics_obj", async (req, res) => {
       return res.json(localCache);
     }
 
-    // 🔹 3. Firestore (fallback)
+    //  3. Firestore (fallback)
     const snapshot = await getDocs(collection(db, "musics_obj"));
     const musics = snapshot.docs.map(doc => doc.data());
 
@@ -287,12 +287,12 @@ app.get("/api/musics_obj", async (req, res) => {
 
 
 
-// 📜 GET: Retornar todos os objetos no formato LUA (Module) usando cache local
+// GET: Retornar todos os objetos no formato LUA (Module) usando cache local
 app.get("/api/musics_obj_lua", async (req, res) => {
   try {
     let musics;
 
-    // 🔹 Tenta ler do Firestore
+    // Tenta ler do Firestore
     try {
       const snapshot = await getDocs(collection(db, "musics_obj"));
       musics = snapshot.docs.map(doc => doc.data());
@@ -328,7 +328,7 @@ app.get("/api/musics_obj_lua", async (req, res) => {
 
 
 
-// ➕ Adicionar um novo ID
+// Adicionar um novo ID
 app.post("/api/musics", async (req, res) => {
   const id = req.body.id || req.body.texto;
 
@@ -361,18 +361,18 @@ app.post("/api/musics", async (req, res) => {
 });
 
 
-// 📜 GET: Listar todos os IDs (com cache em memória + local)
+// GET: Listar todos os IDs (com cache em memória + local)
 app.get("/api/musics", async (req, res) => {
   try {
     const now = Date.now();
 
-    // 🔹 1. Cache em memória (RAM)
+    // 1. Cache em memória (RAM)
     if (memoryCache.musics.data.length > 0 && (now - memoryCache.musics.lastFetch < CACHE_TTL)) {
       console.log("⚡ /api/musics → cache: memória");
       return res.json(memoryCache.musics.data);
     }
 
-    // 🔹 2. Cache local (fs)
+    // 2. Cache local (fs)
     const localCache = readLocalCache(musicsFile);
     if (localCache.length > 0) {
       memoryCache.musics = { data: localCache, lastFetch: now };
@@ -380,7 +380,7 @@ app.get("/api/musics", async (req, res) => {
       return res.json(localCache);
     }
 
-    // 🔹 3. Firestore (fallback)
+    // 3. Firestore (fallback)
     const snapshot = await getDocs(collection(db, "musics"));
     const list = snapshot.docs.map(doc => doc.data().id);
 
@@ -398,7 +398,7 @@ app.get("/api/musics", async (req, res) => {
 
 
 // ====================
-// 🏠 Página inicial
+// Página inicial
 // ====================
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
@@ -406,7 +406,7 @@ app.get("/", (req, res) => {
 
 
 // ====================
-// 🚀 Inicialização Híbrida (Local + Vercel)
+// Inicialização Híbrida (Local + Vercel)
 // ====================
 
 // Detecta se está rodando em ambiente Serverless (Vercel, AWS, etc)
