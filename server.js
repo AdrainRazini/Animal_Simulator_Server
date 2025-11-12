@@ -31,7 +31,8 @@ const memoryCache = {
   musics_obj: { data: [], lastFetch: 0 },
   musics: { data: [], lastFetch: 0 },
 };
-const CACHE_TTL = 60 * 1000; // 60 segundos
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
 
 
 const isReadOnly = process.env.VERCEL || process.env.AWS_REGION || process.env.NODE_ENV === "production";
