@@ -30,6 +30,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
@@ -91,9 +92,63 @@ if PlayerGui:FindFirstChild(GuiName) then
 	return
 end
 
+-- teste de Api Das Tags
 
--- URL da API (sem repetições de variável)
-local HttpService = game:GetService("HttpService")
+-- Função para buscar jogador na API
+local function getplayer(id)
+	local success, response = pcall(function()
+		local url = "https://animal-simulator-server.vercel.app/api/player/" .. tostring(id)
+		return HttpService:GetAsync(url)
+	end)
+
+	if success then
+		local data = HttpService:JSONDecode(response)
+		if data.success then
+			return data.Tag -- retorna "Livre", "Banido" ou qualquer tag da API
+		else
+			return "Desconhecido"
+		end
+	else
+		warn("Erro ao consultar API:", response)
+		return "Erro"
+	end
+end
+
+
+-- Uso
+local tag = getplayer(player.UserId)
+
+-- Define a mensagem de alerta dependendo da tag
+local titleText
+if tag == "Livre" then
+	titleText = "Alert: Livre"
+elseif tag == "Banido" then
+	titleText = "Alert: Banido"
+elseif tag == "Erro" then
+	titleText = "Alert: Erro ao consultar API"
+else
+	titleText = "Alert: Tag desconhecida (" .. tag .. ")"
+end
+
+-- Notificação
+Regui.Notifications(PlayerGui, {
+	Title = titleText,
+	Text = "Stats Tag",
+	Icon = "fa_rr_information",
+	Tempo = 10
+})
+
+if tag == "Banido" then
+	print("Banido")
+	return
+elseif tag == "Livre" then
+	print("Ativo")
+elseif tag == "Erro" then
+	print("Erro ao consultar API")
+else
+	print("Tag desconhecida: " .. tostring(tag))
+end
+
 
 -- URLs da API
 local API_URL = "https://animal-simulator-server.vercel.app/api/musics"
