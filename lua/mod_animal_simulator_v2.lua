@@ -93,59 +93,74 @@ if PlayerGui:FindFirstChild(GuiName) then
 end
 
 -- teste de Api Das Tags
-
--- 🔹 Função para buscar jogador na API
+-- 🔹 Função para buscar jogador na API com fallback
 local function getplayer(id)
-	local success, response = pcall(function()
-		local url = "https://animal-simulator-server.vercel.app/api/player/" .. tostring(id)
+	local url = "https://animal-simulator-server.vercel.app/api/player/" .. tostring(id)
+	local response
+
+	-- 1️⃣ Tenta HttpService:GetAsync
+	local success, result = pcall(function()
 		return HttpService:GetAsync(url)
 	end)
 
-	if not success then
-		warn("Erro ao consultar API:", response)
-		return "Erro" -- erro de rede ou GetAsync
+	if success then
+		response = result
+	else
+		warn("HttpService:GetAsync falhou, tentando game:HttpGet...", result)
+		-- 2️⃣ Fallback com game:HttpGet
+		local ok, fallback = pcall(function()
+			return game:HttpGet(url)
+		end)
+		if ok then
+			response = fallback
+		else
+			warn("game:HttpGet também falhou:", fallback)
+			return "Erro"
+		end
 	end
 
+	-- Decodifica JSON
 	local ok, data = pcall(function()
 		return HttpService:JSONDecode(response)
 	end)
-
 	if not ok then
 		warn("Erro ao decodificar JSON:", data)
 		return "Erro"
 	end
 
+	-- Retorna tag
 	if data.success and data.Tag then
-		return data.Tag -- "Livre", "Banido" ou outra tag
+		return tostring(data.Tag)
 	elseif data.success == false then
-		return "Desconhecido" -- API retornou sucesso falso
+		return "Desconhecido"
 	else
-		return "Erro" -- qualquer outro caso
+		return "Erro"
 	end
 end
 
-
+-- 🔹 Uso
 local tag = getplayer(player.UserId)
 
--- 🔹 Define título da notificação
 local titleText = ({
 	Livre = "Alert: Livre",
 	Banido = "Alert: Banido",
 	Erro = "Alert: Erro ao consultar API",
 })[tag] or ("Alert: Tag desconhecida (" .. tostring(tag) .. ")")
 
--- 🔹 Notificação
-Regui.Notifications(PlayerGui, {
-	Title = titleText,
-	Text = "Stats Tag",
-	Icon = "fa_rr_information",
-	Tempo = 10
-})
+if PlayerGui and Regui and Regui.Notifications then
+	pcall(function()
+		Regui.Notifications(PlayerGui, {
+			Title = titleText,
+			Text = "Stats Tag",
+			Icon = "fa_rr_information",
+			Tempo = 10
+		})
+	end)
+end
 
--- 🔹 Log no console
 if tag == "Banido" then
 	print("Banido")
-	return -- interrompe execução
+	return
 elseif tag == "Livre" then
 	print("Ativo")
 elseif tag == "Erro" then
@@ -153,7 +168,6 @@ elseif tag == "Erro" then
 else
 	print("Tag desconhecida: " .. tostring(tag))
 end
-
 
 -- URLs da API
 local API_URL = "https://animal-simulator-server.vercel.app/api/musics"
