@@ -1,5 +1,4 @@
 User-agent: *
-Disallow: /lua/
-Disallow: /data/
-Disallow: /api/
 Allow: /
+
+Sitemap: https://animal-simulator-server.vercel.app/sitemap.xml
