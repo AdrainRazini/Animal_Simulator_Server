@@ -366,8 +366,24 @@ app.get("/", (req, res) => {
 // ====================
 // 🚀 Iniciar servidor
 // ====================
-app.listen(PORT, () => {
-  console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
-  console.log(`📁 Lua: http://localhost:${PORT}/lua/mod_animal_simulator_v2.lua`);
-  console.log(`🎵 API: http://localhost:${PORT}/api/musics`);
-});
+// ====================
+// 🚀 Inicialização Híbrida (Local + Vercel)
+// ====================
+
+// Detecta se está rodando em ambiente Serverless (Vercel, AWS, etc)
+const isServerless = process.env.VERCEL || process.env.AWS_REGION;
+
+// Se for ambiente local → inicia com app.listen()
+// Se for ambiente serverless → exporta app (sem escutar porta)
+if (!isServerless) {
+  app.listen(PORT, () => {
+    console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
+    console.log(`📁 Lua: http://localhost:${PORT}/lua/mod_animal_simulator_v2.lua`);
+    console.log(`🎵 API: http://localhost:${PORT}/api/musics`);
+  });
+} else {
+  console.log("⚡ Executando em ambiente serverless (Vercel)");
+}
+
+// Exporta o app para ser usado pela Vercel
+export default app;
