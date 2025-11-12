@@ -5,7 +5,7 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import fs from "fs"; 
-
+import { query, where } from "firebase/firestore";
 import { fileURLToPath } from "url";
 import { collection, getDocs, addDoc, updateDoc} from "firebase/firestore";
 import { db } from "./firebase.js";
@@ -217,35 +217,37 @@ app.get("/api/player/:id", async (req, res) => {
 //  API: Gerenciar IDs de músicas (Firebase) — VERSÃO ATUALIZADA
 app.post("/api/musics_obj", async (req, res) => {
   const Name = req.body.Name || req.body.name;
-  const Obj = req.body.Obj || req.body.obj;
-  if (!Name) return res.status(400).json({ error: "Campo 'Name' é obrigatório" });
-  if (!Obj) return res.status(400).json({ error: "Campo 'Obj' é obrigatório" });
-  if (!/^\d+$/.test(Obj)) return res.status(400).json({ error: "O campo 'Obj' deve conter apenas números" });
+  const Obj = Number(req.body.Obj || req.body.obj);
 
-  const numericObj = Number(Obj);
+  if (!Name || isNaN(Obj)) return res.status(400).json({ error: "Campos inválidos" });
 
-  //  Lê cache local primeiro
-  let cache = readLocalCache(musicsObjFile);
-  const existsCache = cache.some(item => item.Obj === numericObj);
-  if (existsCache) {
-    return res.status(400).json({ error: "Obj já existe no cache local" });
+  // 1. Checa cache em memória
+  if (memoryCache.musics_obj.data.some(item => item.Obj === Obj)) {
+    return res.status(400).json({ error: "Obj já existe no cache" });
   }
 
   try {
-    //  Verifica também no Firestore (caso cache esteja desatualizado)
-    const snapshot = await getDocs(collection(db, "musics_obj"));
-    const exists = snapshot.docs.some(doc => doc.data().Obj === numericObj);
-    if (exists) return res.status(400).json({ error: "Obj já existe no Firestore" });
+    // 2. Checa Firestore via query
+    const q = query(collection(db, "musics_obj"), where("Obj", "==", Obj));
+    const snapshot = await getDocs(q);
 
-    //  Adiciona no Firestore e no cache local
-    await addDoc(collection(db, "musics_obj"), { Name, Obj: numericObj });
-    cache.push({ Name, Obj: numericObj });
-    writeLocalCache(musicsObjFile, cache);
+    if (!snapshot.empty) return res.status(400).json({ error: "Obj já existe no Firestore" });
 
-    console.log("📩 Novo objeto adicionado:", { Name, Obj: numericObj });
+    // 3. Adiciona
+    const newDoc = { Name, Obj };
+    await addDoc(collection(db, "musics_obj"), newDoc);
+
+    // 4. Atualiza caches
+    const localCache = readLocalCache(musicsObjFile);
+    const updatedCache = [...localCache, newDoc];
+    writeLocalCache(musicsObjFile, updatedCache);
+
+    memoryCache.musics_obj.data.push(newDoc);
+    memoryCache.musics_obj.lastFetch = Date.now();
+
     res.json({ success: true });
   } catch (err) {
-    console.error("❌ Erro ao salvar no Firestore:", err);
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -329,32 +331,22 @@ function convertToLua(musics) {
 
 
 
-
-
-
 // Adicionar um novo ID
 app.post("/api/musics", async (req, res) => {
   const id = req.body.id || req.body.texto;
 
   if (!id) return res.status(400).json({ error: "Campo 'id' é obrigatório" });
+  if (!/^\d+$/.test(id)) return res.status(400).json({ error: "O campo 'id' deve conter apenas números" });
 
-  // Verifica se id contém apenas números
-  if (!/^\d+$/.test(id)) {
-    return res.status(400).json({ error: "O campo 'id' deve conter apenas números" });
-  }
-
-  const numericId = Number(id); // converte para número
+  const numericId = Number(id);
 
   try {
-    // Busca todos os IDs existentes
-    const snapshot = await getDocs(collection(db, "musics"));
-    const exists = snapshot.docs.some(doc => doc.data().id === numericId);
+    // 🔹 Verifica se o ID já existe via query
+    const q = query(collection(db, "musics"), where("id", "==", numericId));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) return res.status(400).json({ error: "ID já existe" });
 
-    if (exists) {
-      return res.status(400).json({ error: "ID já existe" });
-    }
-
-    // Adiciona no Firestore
+    // 🔹 Adiciona no Firestore
     await addDoc(collection(db, "musics"), { id: numericId });
     console.log("📩 Novo ID adicionado:", numericId);
     res.json({ success: true });
@@ -363,6 +355,7 @@ app.post("/api/musics", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 // GET: Listar todos os IDs (com cache em memória + local)
