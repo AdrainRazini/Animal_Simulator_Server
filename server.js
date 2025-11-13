@@ -18,6 +18,7 @@ const __dirname = path.dirname(__filename);
 const dataDir = path.join(__dirname, "data");
 const musicsFile = path.join(dataDir, "musics.json");
 const musicsObjFile = path.join(dataDir, "musics_obj.json");
+const playersFile = path.join(dataDir, "players.json");
 
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
@@ -339,6 +340,7 @@ app.get("/api/musics_obj_lua", async (req, res) => {
 
 function convertToLua(musics) {
   return `return {\n${musics.map(m => `  {name="${m.Name}", Obj=${m.Obj}}`).join(",\n")}\n}`;
+ // return `return {\n${musics.map(m => `  {name=${JSON.stringify(m.Name)}, Obj=${m.Obj}}`).join(",\n")}\n}`;
 }
 
 
