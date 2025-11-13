@@ -93,12 +93,37 @@ app.use(express.static(path.join(__dirname, "public")));
 
 
 // Função auxiliar para buscar jogador por ID
+// ======================================================
+// 🧠 Função auxiliar — Buscar jogador por ID (com cache)
+// ======================================================
 async function getPlayerById(id) {
   const numericId = Number(id);
+
+  // 1 Verifica cache primeiro
+  if (memoryCache.players.data.length > 0) {
+    const player = memoryCache.players.data.find(p => p.Id_player === numericId);
+    if (player) return { ref: null, data: () => player }; // Simula doc do Firestore
+  }
+
+  //  Busca no Firestore se não estiver no cache
   const q = query(collection(db, "players"), where("Id_player", "==", numericId));
   const snapshot = await getDocs(q);
-  return snapshot.docs[0]; // retorna undefined se não existir
+
+  if (!snapshot.empty) {
+    const doc = snapshot.docs[0];
+    const data = doc.data();
+
+    // Atualiza cache
+    if (!memoryCache.players.data.some(p => p.Id_player === numericId)) {
+      memoryCache.players.data.push(data);
+    }
+
+    return { ref: doc.ref, data: () => data };
+  }
+
+  return undefined;
 }
+
 
 // Adicionar ou Atualizar Jogador
 app.post("/api/players", async (req, res) => {
