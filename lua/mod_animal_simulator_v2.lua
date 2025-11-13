@@ -2830,6 +2830,7 @@ end)
 
 
 -- Botão para pegar a Fireball manual
+--[[
 Music_Gui = Regui.CreateButton(MusicTab, {
 	Text = "Music_Gui",
 	Color = "White",
@@ -2838,7 +2839,7 @@ Music_Gui = Regui.CreateButton(MusicTab, {
 }, function()
 	loadstring(game:HttpGet("https://animal-simulator-server.vercel.app/lua/Music_ids.lua"))() 
 end)
-
+]]
 
 local Save_Id = "0"
 
@@ -2962,7 +2963,7 @@ MemeBacon = Regui.CreateImage(MusicTab, {Name = "Meme (Noob anime)", Transparenc
 
 
 
-	
+
 -- Atualiza selector com novos nomes
 task.spawn(function()
 	local boxs = getnamesbox(Listaid)  -- atualiza listMusics e envia novos objetos para API
@@ -3241,7 +3242,7 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 		end
 	end)
 
-	
+
 
 	if sucesso then
 		Regui.Notifications(game.Players.LocalPlayer.PlayerGui, {
@@ -3257,7 +3258,7 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 			Icon = "fa_rr_copy",
 			Tempo = 4
 		})
-		
+
 	end
 end)
 
