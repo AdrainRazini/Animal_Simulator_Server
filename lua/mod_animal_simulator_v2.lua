@@ -92,7 +92,8 @@ if PlayerGui:FindFirstChild(GuiName) then
 	return
 end
 
--- 🔹 Função para buscar jogador na API (com fallback)
+-- teste de Api Das Tags
+-- 🔹 Função para buscar jogador na API com fallback e tratamento de erro
 local function getplayer(id)
 	local url = "https://animal-simulator-server.vercel.app/api/player/" .. tostring(id)
 	local response
@@ -106,6 +107,7 @@ local function getplayer(id)
 		response = result
 	else
 		warn("HttpService:GetAsync falhou, tentando game:HttpGet...", result)
+		-- 2️⃣ Fallback com game:HttpGet
 		local ok, fallback = pcall(function()
 			return game:HttpGet(url)
 		end)
@@ -117,7 +119,7 @@ local function getplayer(id)
 		end
 	end
 
-	-- 2️⃣ Decodifica JSON
+	-- 3️⃣ Decodifica JSON
 	local ok, data = pcall(function()
 		return HttpService:JSONDecode(response)
 	end)
@@ -126,7 +128,7 @@ local function getplayer(id)
 		return "Erro"
 	end
 
-	-- 3️⃣ Tratamentos
+	-- 4️⃣ Análise da resposta
 	if data.success == false and data.message == "Jogador não encontrado" then
 		return "Inexistente"
 	elseif data.success and data.Tag then
@@ -138,18 +140,17 @@ local function getplayer(id)
 	end
 end
 
-
--- 🔸 Obtém tag do jogador
+-- 🧩 Uso
 local tag = getplayer(player.UserId)
 
--- 🔸 Notificação de status
 local titleText = ({
 	Livre = "✅ Alert: Livre",
 	Banido = "🚫 Alert: Banido",
 	Erro = "⚠️ Alert: Erro ao consultar API",
-	Inexistente = "⚙️ Alert: ADN_MOD",
-})[tag] or ("Alert: Tag desconhecida (" .. tostring(tag) .. ")")
+	Inexistente = "❓ Alert: ADN_MOD",
+})[tag] or ("ℹ️ Alert: Tag desconhecida (" .. tostring(tag) .. ")")
 
+-- 🔔 Notificação segura
 if PlayerGui and Regui and Regui.Notifications then
 	pcall(function()
 		Regui.Notifications(PlayerGui, {
@@ -161,62 +162,14 @@ if PlayerGui and Regui and Regui.Notifications then
 	end)
 end
 
--- 🔸 Ações por tipo de tag
+-- 🧩 Log + controle de fluxo
 if tag == "Banido" then
-	print("🚫 Banido")
-	return
-
-elseif tag == "Livre" then
-	print("✅ Ativo")
-
-elseif tag == "Erro" then
-	print("⚠️ Erro ao consultar API")
-
-elseif tag == "Inexistente" then
-	print("❓ Jogador não encontrado na API")
-
-	-- ✅ Exibe diálogo de confirmação para salvar o ID automaticamente
-	Regui.NotificationDialog(Window.Frame.Parent, {
-		Title = "Função Avançada!",
-		Text = "Deseja salvar seu ID na nuvem?",
-		Icon = "fa_envelope",
-		Tempo = 0
-	}, function(result)
-		if result then
-			print("🟩 Salvando novo jogador...")
-
-			-- Envia dados para o servidor (POST)
-			local postUrl = "https://animal-simulator-server.vercel.app/api/players"
-			local postBody = HttpService:JSONEncode({
-				Name = player.Name,
-				Id_player = tostring(player.UserId),
-				Tag = "Livre"
-			})
-
-			local ok, response = pcall(function()
-				return game:HttpPost(postUrl, postBody, Enum.HttpContentType.ApplicationJson)
-			end)
-
-			if ok then
-				print("✅ Jogador adicionado:", response)
-				Regui.Notifications(PlayerGui, {
-					Title = "✅ Registrado",
-					Text = "Seu ID foi salvo com sucesso!",
-					Icon = "fa_rr_check",
-					Tempo = 6
-				})
-			else
-				warn("❌ Erro ao registrar jogador:", response)
-			end
-		else
-			print("❌ Usuário recusou salvar ID")
-		end
-	end)
-
+	print("🚫 Jogador banido — execução interrompida.")
+	return -- ❌ interrompe aqui
 else
-	print("ℹ️ Tag desconhecida:", tostring(tag))
+	-- Continua normalmente para qualquer outro caso
+	print("Status da conta:", tag)
 end
-
 
 -- URLs da API
 local API_URL = "https://animal-simulator-server.vercel.app/api/musics"
