@@ -2611,30 +2611,39 @@ function getnamesbox(list)
 
 	-- Marca todos os IDs já existentes em listMusics
 	for _, music in ipairs(listMusics) do
-		existingIds[music.Obj] = true
+		existingIds[tostring(music.Obj)] = true
 	end
 
-	-- Processa novos IDs, evitando duplicatas
+	-- Processa novos IDs
 	for _, id in ipairs(list) do
-		if not existingIds[tostring(id)] then
+		local idStr = tostring(id)
+
+		-- Ignorar duplicatas
+		if not existingIds[idStr] then
+
 			local success, info = pcall(function()
 				return MarketplaceService:GetProductInfo(id)
 			end)
 
-			local newMusic = {}
-			if success and info then
-				newMusic = {name = info.Name, Obj = tostring(id)}
-			else
-				newMusic = {name = "???", Obj = tostring(id)}
-			end
+			-- Só adiciona se for válido
+			if success and info and info.Name and info.Name ~= "" then
+				local newMusic = {
+					name = info.Name,
+					Obj = idStr
+				}
 
-			table.insert(listMusics, newMusic)        -- adiciona direto na lista principal
-			existingIds[tostring(id)] = true          -- marca como existente
+				table.insert(listMusics, newMusic)
+				existingIds[idStr] = true
+			else
+				-- ❌ ID inválido → NÃO adiciona nada
+				warn("ID inválido ou falha ao buscar:", id)
+			end
 		end
 	end
 
-	return listMusics -- retorna a lista atualizada
+	return listMusics
 end
+
 
 -- Função para adicionar ID via requisição HTTP
 function addMusicId(id)
