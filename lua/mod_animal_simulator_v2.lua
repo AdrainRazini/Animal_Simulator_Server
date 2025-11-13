@@ -93,7 +93,7 @@ if PlayerGui:FindFirstChild(GuiName) then
 end
 
 -- teste de Api Das Tags
--- 🔹 Função para buscar jogador na API com fallback
+-- 🔹 Função para buscar jogador na API com fallback e tratamento de erro
 local function getplayer(id)
 	local url = "https://animal-simulator-server.vercel.app/api/player/" .. tostring(id)
 	local response
@@ -128,7 +128,12 @@ local function getplayer(id)
 		return "Erro"
 	end
 
-	-- Retorna tag
+	-- 🔸 Caso jogador não encontrado
+	if data.success == false and data.message == "Jogador não encontrado" then
+		return "Inexistente"
+	end
+
+	-- 🔸 Retorna tag válida
 	if data.success and data.Tag then
 		return tostring(data.Tag)
 	elseif data.success == false then
@@ -138,35 +143,41 @@ local function getplayer(id)
 	end
 end
 
+
 -- 🔹 Uso
 local tag = getplayer(player.UserId)
 
 local titleText = ({
-	Livre = "Alert: Livre",
-	Banido = "Alert: Banido",
-	Erro = "Alert: Erro ao consultar API",
+	Livre = "✅ Alert: Livre",
+	Banido = "🚫 Alert: Banido",
+	Erro = "⚠️ Alert: Erro ao consultar API",
+	Inexistente = "Alert: ADN_MOD" ,
 })[tag] or ("Alert: Tag desconhecida (" .. tostring(tag) .. ")")
 
+-- 🔹 Notificação segura
 if PlayerGui and Regui and Regui.Notifications then
 	pcall(function()
 		Regui.Notifications(PlayerGui, {
 			Title = titleText,
-			Text = "Stats Tag",
+			Text = "Status da conta: " .. tostring(tag),
 			Icon = "fa_rr_information",
 			Tempo = 10
 		})
 	end)
 end
 
+-- 🔹 Log no console
 if tag == "Banido" then
-	print("Banido")
+	print("🚫 Banido")
 	return
 elseif tag == "Livre" then
-	print("Ativo")
+	print("✅ Ativo")
 elseif tag == "Erro" then
-	print("Erro ao consultar API")
+	print("⚠️ Erro ao consultar API")
+elseif tag == "Inexistente" then
+	print("❓ Jogador não encontrado na API")
 else
-	print("Tag desconhecida: " .. tostring(tag))
+	print("ℹ️ Tag desconhecida:", tostring(tag))
 end
 
 -- URLs da API
