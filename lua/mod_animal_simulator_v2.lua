@@ -224,6 +224,22 @@ end
 -- 🔹 Busca as duas listas
 local Listaid = GetFromAPI(Json_Url_Musics)
 local listMusics = {}
+local success, result = pcall(function()
+	local response = game:HttpGet(API_URL_Obj_Lua)
+	task.wait(0.5)
+	return loadstring(response)() 
+end)
+
+if success and type(result) == "table" then
+	listMusics = result
+	print("✅ Músicas carregadas da API:", #listMusics)
+else
+	warn("⚠️ Falha ao carregar músicas da API, usando lista padrão.")
+	listMusics = {
+		{name = "Loading ...", Obj = 0},
+
+	}
+end
 
 
 
@@ -3253,7 +3269,7 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 	end
 end)
 
-
+--[[
 local success, response = pcall(function()
 	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/Translate.lua")
 end)
@@ -3273,22 +3289,4 @@ if success and response then
 else
 	warn("❌ Falha ao baixar API de tradução:", response)
 end
-
-
-
-local success, result = pcall(function()
-	local response = game:HttpGet(API_URL_Obj_Lua)
-	task.wait(0.5)
-	return loadstring(response)() 
-end)
-
-if success and type(result) == "table" then
-	listMusics = result
-	print("✅ Músicas carregadas da API:", #listMusics)
-else
-	warn("⚠️ Falha ao carregar músicas da API, usando lista padrão.")
-	listMusics = {
-		{name = "Loading ...", Obj = 0},
-
-	}
-end
+]]
