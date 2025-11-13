@@ -226,7 +226,7 @@ local Listaid = GetFromAPI(Json_Url_Musics)
 local listMusics = {}
 
 local success, result = pcall(function()
-	local response = game:HttpGet(Json_Url_Musics_Obj)
+	local response = game:HttpGet("https://animal-simulator-server.vercel.app/api/musics_obj_lua")
 	task.wait(0.5)
 	return loadstring(response)() 
 end)
