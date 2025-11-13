@@ -225,22 +225,32 @@ end
 local Listaid = GetFromAPI(Json_Url_Musics)
 local listMusics = {}
 
-local success, result = pcall(function()
-	local response = game:HttpGet("https://animal-simulator-server.vercel.app/api/musics_obj_lua")
-	task.wait(0.5)
-	return loadstring(response)() 
-end)
+local function loadMusicsFromAPI()
+	local success, result = pcall(function()
+		-- 1️⃣ Pega conteúdo da API
+		local response = game:HttpGet(API_URL_Obj_Lua)
 
-if success and type(result) == "table" then
-	listMusics = result
-	print("✅ Músicas carregadas da API:", #listMusics)
-else
-	warn("⚠️ Falha ao carregar músicas da API, usando lista padrão.")
-	listMusics = {
-		{name = "Loading ...", Obj = 0},
+		task.wait(0.2)
 
-	}
+		-- 2️⃣ Executa o Lua retornado pela API
+		return loadstring(response)()
+	end)
+
+	-- 3️⃣ Verifica se retornou uma tabela válida
+	if success and type(result) == "table" then
+		listMusics = result
+		print("✅ Músicas carregadas da API:", #listMusics)
+	else
+		warn("⚠️ Falha ao carregar músicas da API, usando lista padrão.")
+
+		listMusics = {
+			{name = "Loading ...", Obj = "0"},
+		}
+	end
 end
+
+-- Executa carregamento
+loadMusicsFromAPI()
 
 
 
