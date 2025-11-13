@@ -147,7 +147,7 @@ app.post("/api/players", async (req, res) => {
 app.get("/api/players", async (req, res) => {
   try {
     const now = Date.now();
-    if (memoryCache.players.data.length > 0 && (now - memoryCache.players.lastFetch < memoryCache.CACHE_TTL)) {
+    if (memoryCache.players.data.length > 0 && (now - memoryCache.players.lastFetch < CACHE_TTL)){
       return res.json(memoryCache.players.data);
     }
 
@@ -187,7 +187,6 @@ app.put("/api/players/:id", async (req, res) => {
 });
 
 // Obter jogador por ID
-// 🔹 Obter jogador por ID
 app.get("/api/player/:id", async (req, res) => {
   const { id } = req.params;
 
