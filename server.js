@@ -10,9 +10,6 @@ import { fileURLToPath } from "url";
 import { collection, getDocs, addDoc, updateDoc} from "firebase/firestore";
 import { db } from "./firebase.js";
 
-// novo console logs
-import { getLogs, clearLogs } from "./utils/consoleLogger.js";
-
 
 
 // Corrigir __dirname em ES Modules
@@ -479,22 +476,6 @@ app.get("/api/musics", async (req, res) => {
 });
 
 
-
-
-// ====================
-//  API: Logs do Servidor
-// ====================
-
-// Retorna logs em memória
-app.get("/api/logs", (req, res) => {
-  res.json(getLogs());
-});
-
-// Limpa logs (opcional — segurança recomendada com token)
-app.post("/api/logs/clear", (req, res) => {
-  clearLogs();
-  res.json({ success: true, message: "Logs limpos." });
-});
 
 
 // ====================
