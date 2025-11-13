@@ -223,7 +223,8 @@ end
 
 -- 🔹 Busca as duas listas
 local Listaid = GetFromAPI(Json_Url_Musics)
-local listMusics = {}
+local listMusics = {{name = "Loading ...", Obj = 0}}
+--[[
 local success, result = pcall(function()
 	local response = game:HttpGet(API_URL_Obj_Lua)
 	task.wait(0.5)
@@ -240,7 +241,7 @@ else
 
 	}
 end
-
+]]
 
 
 -- REMOTES
@@ -3269,7 +3270,7 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 	end
 end)
 
---[[
+
 local success, response = pcall(function()
 	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/Translate.lua")
 end)
@@ -3289,4 +3290,3 @@ if success and response then
 else
 	warn("❌ Falha ao baixar API de tradução:", response)
 end
-]]
