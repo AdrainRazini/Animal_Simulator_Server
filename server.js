@@ -10,9 +10,37 @@ import { fileURLToPath } from "url";
 import { collection, getDocs, addDoc, updateDoc} from "firebase/firestore";
 import { db } from "./firebase.js";
 
+
+
+
 // Corrigir __dirname em ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+
+// ====================
+//  Porta 3000 
+// ====================
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// ====================
+// Middlewares
+// ====================
+app.use(cors({ origin: "*" }));
+app.use(express.json());
+
+// ====================
+// 📁 Servir arquivos estáticos
+// ====================
+// Serve os arquivos .json (tipo GitHub Raw)
+app.use("/data", express.static(path.join(__dirname, "data")));
+// Serve os arquivos .lua (tipo GitHub Raw)
+app.use("/lua", express.static(path.join(__dirname, "lua")));
+// Serve HTML, CSS, JS da pasta "public"
+app.use(express.static(path.join(__dirname, "public")));
+
+
 
 // Caminhos para os caches locais
 const dataDir = path.join(__dirname, "data");
@@ -63,29 +91,70 @@ function writeLocalCache(file, data) {
   }
 }
 
+async function getDataWithCache(key, file, firestoreCollection) {
+  const now = Date.now();
+
+  // 1. Memória
+  if (memoryCache[key].data.length > 0 && (now - memoryCache[key].lastFetch < CACHE_TTL)) {
+    return memoryCache[key].data;
+  }
+
+  // 2. Local (se permitido)
+  if (!isReadOnly) {
+    const local = readLocalCache(file);
+    if (local.length > 0) {
+      memoryCache[key] = { data: local, lastFetch: now };
+      return local;
+    }
+  }
+
+  // 3. Firestore
+  const snapshot = await getDocs(collection(db, firestoreCollection));
+  const docs = snapshot.docs.map(doc => doc.data());
+  memoryCache[key] = { data: docs, lastFetch: now };
+  if (!isReadOnly) writeLocalCache(file, docs);
+  return docs;
+}
 
 // ====================
-//  Porta 3000 
+// 🔧 Função Genérica para Rotas de Busca
 // ====================
-const app = express();
-const PORT = process.env.PORT || 3000;
+function createDataRoute(endpoint, cacheKey, localFile, firestoreCollection) {
+  app.get(endpoint, async (req, res) => {
+    try {
+      const now = Date.now();
 
-// ====================
-// Middlewares
-// ====================
-app.use(cors({ origin: "*" }));
-app.use(express.json());
+      // ⚡ 1. Cache em memória
+      if (memoryCache[cacheKey].data.length > 0 && (now - memoryCache[cacheKey].lastFetch < CACHE_TTL)) {
+        console.log(`⚡ ${endpoint} → cache: memória`);
+        return res.json(memoryCache[cacheKey].data);
+      }
 
-// ====================
-// 📁 Servir arquivos estáticos
-// ====================
-// Serve os arquivos .json (tipo GitHub Raw)
-app.use("/data", express.static(path.join(__dirname, "data")));
-// Serve os arquivos .lua (tipo GitHub Raw)
-app.use("/lua", express.static(path.join(__dirname, "lua")));
-// Serve HTML, CSS, JS da pasta "public"
-app.use(express.static(path.join(__dirname, "public")));
+      // ⚡ 2. Cache local (disco)
+      if (!isReadOnly) {
+        const local = readLocalCache(localFile);
+        if (local.length > 0) {
+          memoryCache[cacheKey] = { data: local, lastFetch: now };
+          console.log(`⚡ ${endpoint} → cache: disco`);
+          return res.json(local);
+        }
+      }
 
+      // ⚡ 3. Firestore (fallback)
+      const data = await getDataWithCache(cacheKey, localFile, firestoreCollection);
+      console.log(`⚡ ${endpoint} → fonte: Firestore`);
+      res.json(data);
+    } catch (err) {
+      console.error(`❌ Erro em ${endpoint}:`, err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+}
+
+// Criar rotas automáticas de leitura
+createDataRoute("/api/musics", "musics", musicsFile, "musics");
+createDataRoute("/api/musics_obj", "musics_obj", musicsObjFile, "musics_obj");
+createDataRoute("/api/players", "players", playersFile, "players");
 
 // ====================
 // API: Gerenciar Jogadores
