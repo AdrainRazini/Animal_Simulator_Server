@@ -52,6 +52,7 @@ if (!fs.existsSync(dataDir)) {
   console.log("📁 Pasta 'data' criada automaticamente");
 }
 
+
 // ====================
 // 🔸 Cache em memória para reduzir leituras no Firestore
 // ====================
@@ -267,7 +268,8 @@ app.get("/api/player/:id", async (req, res) => {
       // Caso não exista, retorna 404
       return res.status(404).json({
         success: false,
-        message: "Jogador não encontrado"
+        message: "Jogador não encontrado",
+        Tag: "Livre"
       });
     }
 
