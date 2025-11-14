@@ -256,39 +256,74 @@ app.put("/api/players/:id", async (req, res) => {
   }
 });
 
+
 // Obter jogador por ID
 app.get("/api/player/:id", async (req, res) => {
-  const { id } = req.params;
+  let { id } = req.params;
 
   try {
-    // Busca o jogador usando função auxiliar (retorna doc do Firestore ou undefined)
-    const playerDoc = await getPlayerById(id);
+    // 0️⃣ Remove espaços e mantém só números
+    id = id.replace(/\D+/g, "");
 
-    if (!playerDoc) {
-      // Caso não exista, retorna 404
-      return res.status(404).json({
+    const numericId = Number(id);
+    if (!numericId || numericId <= 0) {
+      return res.status(202).json({
         success: false,
-        message: "Jogador não encontrado",
-        Tag: "Livre"
+        message: "ID inválido",
+        Tag: "Livre",
+        cached: false
       });
     }
 
-    // Retorna dados principais do jogador
+    // 1️⃣ Tenta buscar normalmente no Firestore ou cache real
+    const playerDoc = await getPlayerById(numericId);
+
+    // 2️⃣ Se não existir → cria cache temporário e retorna 202 (sem erro)
+    if (!playerDoc) {
+      // Cache manual básico só para "lembrar" das consultas
+      memoryCache.players.data.push({
+        Id_player: numericId,
+        Name: "Desconhecido",
+        Tag: "Livre",
+        cached_fake: true
+      });
+
+      return res.status(202).json({
+        success: false,
+        message: "Jogador não encontrado (cache criado)",
+        Id_player: numericId,
+        Name: "Desconhecido",
+        Tag: "Livre",
+        cached: true
+      });
+    }
+
+    // 3️⃣ Se existe → responde normalmente
     const data = playerDoc.data();
-    res.json({
+    return res.status(200).json({
       success: true,
       Id_player: data.Id_player,
       Name: data.Name,
-      Tag: data.Tag // "Livre", "Banido" ou outra tag
+      Tag: data.Tag || "Livre",
+      cached: false
     });
+
   } catch (err) {
     console.error("❌ Erro ao buscar jogador:", err);
-    res.status(500).json({
+
+    // Mesmo em erro interno → 202 para não quebrar o Lua
+    return res.status(202).json({
       success: false,
-      error: err.message
+      message: "Erro interno, mas resposta segura enviada",
+      Tag: "Livre",
+      error: err.message,
+      cached: false
     });
   }
 });
+
+
+
 
 
 
