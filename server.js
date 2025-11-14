@@ -5,12 +5,15 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import fs from "fs"; 
+
+// Coleção Fire Base
 import { query, where } from "firebase/firestore";
 import { fileURLToPath } from "url";
 import { collection, getDocs, addDoc, updateDoc} from "firebase/firestore";
 import { db } from "./firebase.js";
 
-
+// Coleção de Memoria
+import { memoryCache, CACHE_TTL } from "./fileCache/Cache.js"; // Memoria Iportada
 
 // Corrigir __dirname em ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -56,13 +59,6 @@ if (!fs.existsSync(dataDir)) {
 // ====================
 // 🔸 Cache em memória para reduzir leituras no Firestore
 // ====================
-const memoryCache = {
-  musics_obj: { data: [], lastFetch: 0 },
-  musics: { data: [], lastFetch: 0 },
-  players: { data: [], lastFetch: 0 },
-};
-const CACHE_TTL = 5 * 60 * 60 * 1000; // 5 h
-
 
 
 const isReadOnly = process.env.VERCEL || process.env.AWS_REGION || process.env.NODE_ENV === "production";
@@ -296,6 +292,7 @@ app.get("/api/player/:id", async (req, res) => {
         Tag: "Livre",
         cached: true
       });
+
     }
 
     // 3️⃣ Se existe → responde normalmente
@@ -321,10 +318,6 @@ app.get("/api/player/:id", async (req, res) => {
     });
   }
 });
-
-
-
-
 
 
 
