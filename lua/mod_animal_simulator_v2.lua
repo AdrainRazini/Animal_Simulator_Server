@@ -94,50 +94,80 @@ end
 
 -- teste de Api Das Tags
 -- 🔹 Função para buscar jogador na API com fallback e tratamento de erro
+
+local RESULT = {
+	ERRO = "Erro",
+	INEXISTENTE = "Inexistente",
+	DESCONHECIDO = "Desconhecido"
+}
+
+-- 🔹 Função segura para buscar dados do jogador na API
 local function getplayer(id)
 	local url = "https://animal-simulator-server.vercel.app/api/player/" .. tostring(id)
 	local response
 
-	-- 1️⃣ Tenta HttpService:GetAsync
-	local success, result = pcall(function()
+	---------------------------------------------------
+	-- 1️⃣ TENTATIVA PRINCIPAL (HttpService:GetAsync)
+	---------------------------------------------------
+	local okGet, result = pcall(function()
 		return HttpService:GetAsync(url)
 	end)
 
-	if success then
+	if okGet then
 		response = result
 	else
-		warn("HttpService:GetAsync falhou, tentando game:HttpGet...", result)
-		-- 2️⃣ Fallback com game:HttpGet
-		local ok, fallback = pcall(function()
+		warn("❌ GetAsync falhou:", result)
+	end
+
+	---------------------------------------------------
+	-- 2️⃣ FALLBACK ALTERNATIVO (game:HttpGet)
+	---------------------------------------------------
+	if not response then
+		local okFallback, fallback = pcall(function()
 			return game:HttpGet(url)
 		end)
-		if ok then
+
+		if okFallback then
 			response = fallback
 		else
-			warn("game:HttpGet também falhou:", fallback)
-			return "Erro"
+			warn("❌ game:HttpGet falhou:", fallback)
+			return RESULT.ERRO
 		end
 	end
 
-	-- 3️⃣ Decodifica JSON
-	local ok, data = pcall(function()
-		return HttpService:JSONDecode(response)
-	end)
-	if not ok then
-		warn("Erro ao decodificar JSON:", data)
-		return "Erro"
+	---------------------------------------------------
+	-- 3️⃣ DECODIFICAÇÃO DO JSON
+	---------------------------------------------------
+	if not response or response == "" then
+		warn("⚠️ Resposta vazia da API")
+		return RESULT.ERRO
 	end
 
-	-- 4️⃣ Análise da resposta
-	if data.success == false and data.message == "Jogador não encontrado" then
-		return "Inexistente"
-	elseif data.success and data.Tag then
-		return tostring(data.Tag)
-	elseif data.success == false then
-		return "Desconhecido"
-	else
-		return "Erro"
+	local okJson, data = pcall(function()
+		return HttpService:JSONDecode(response)
+	end)
+
+	if not okJson or type(data) ~= "table" then
+		warn("⚠️ JSON inválido:", data)
+		return RESULT.ERRO
 	end
+
+	---------------------------------------------------
+	-- 4️⃣ ANÁLISE DE RETORNO DA API
+	---------------------------------------------------
+	if data.success == false then
+		if data.message == "Jogador não encontrado" then
+			return RESULT.INEXISTENTE
+		end
+		return RESULT.DESCONHECIDO
+	end
+
+	-- Sucesso mas sem tag?
+	if not data.Tag then
+		return RESULT.DESCONHECIDO
+	end
+
+	return tostring(data.Tag)
 end
 
 -- 🧩 Uso
@@ -170,6 +200,7 @@ else
 	-- Continua normalmente para qualquer outro caso
 	print("Status da conta:", tag)
 end
+
 
 -- URLs da API
 local API_URL = "https://animal-simulator-server.vercel.app/api/musics"
