@@ -2043,6 +2043,7 @@ end
 -- AF Farmes
 verific(ToggleCoins, AF.coins) 
 verific(ToggleBosses, AF.bosses)
+verific(ToggleBosses_AFK_Hiden, AF.Hide_New)
 verific(Check_Farme_dummies, AF.dummies)
 verific(Check_Farme_dummies5k, AF.dummies5k)
 verific(Check_Tp_dummies, AF.tpDummy)
