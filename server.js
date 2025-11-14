@@ -13,7 +13,7 @@ import { collection, getDocs, addDoc, updateDoc} from "firebase/firestore";
 import { db } from "./firebase.js";
 
 // Coleção de Memoria
-import { memoryCache, CACHE_TTL } from "./fileCache/Cache.js"; // Memoria Iportada
+import { memoryCache, CACHE_TTL} from "./fileCache/Cache.js"; // Memoria Iportada
 
 // Corrigir __dirname em ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -253,8 +253,15 @@ app.put("/api/players/:id", async (req, res) => {
 });
 
 
-// Obter jogador por ID
+// Obter jogador por ID 
+app.set('trust proxy', true);  // se estiver atrás de proxy (ex: Vercel, Nginx)
+
 app.get("/api/player/:id", async (req, res) => {
+// casso erro delete
+  const forwarded = req.headers['x-forwarded-for'];
+  const ip = (forwarded ? forwarded.split(',')[0] : req.socket.remoteAddress);
+  console.log("🔍 IP do cliente:", ip);
+
   let { id } = req.params;
 
   try {
