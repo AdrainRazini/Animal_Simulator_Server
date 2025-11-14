@@ -2584,6 +2584,7 @@ local function getRequest()
 		or (http and http.request)
 		or (http_request)
 		or (fluxus and fluxus.request)
+		or (krnl and krnl.request)
 		or (request)
 end
 
