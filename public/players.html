@@ -221,6 +221,7 @@
 <!-- 🌐 Navbar -->
 <div class="navbar">
   <a href="index.html"><i class="fas fa-home"></i> Voltar</a>
+  <a href="user-dashboard.html"><i class="fas fa-shield-alt"></i> Painel</a>
   <a href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Discord</a>
 </div>
 
@@ -269,6 +270,15 @@
 <script type="module">
   import { auth, db } from "./js/Auth.js";
   import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
+
+ // Pre-carrega info da memória local
+  const nome = localStorage.getItem('username');
+  const email = localStorage.getItem('useremail');
+  const foto = localStorage.getItem('userphoto');
+
+  if (nome) document.getElementById("user-name").innerText = nome;
+  if (email) document.getElementById("user-email").innerText = email;
+  if (foto) document.getElementById("user-avatar").src = foto;
 
   const adminContent = document.getElementById("adminContent");
   const playerList = document.getElementById("playerList");
