@@ -142,15 +142,6 @@ animate();
     </video>
   </div>
 </div>
-<!-- 🌐 Menu Desktop -->
-<div class="navbar">
-  <a href="#top"><i class="fas fa-home"></i> Início</a>
-  <a href="#musics"><i class="fas fa-music"></i> Músicas</a>
-  <a href="#api"><i class="fas fa-globe"></i> APIs</a>
-  <a href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Discord</a>
-  <a href="user-dashboard.html" target="_blank"><i class="fas fa-user"></i> User</a>
-  <a href="login.html" target="_blank"><i class="fas fa-server"></i> Login</a>
-</div>
 
 <!-- 🍔 Menu Mobile -->
 <div class="hamburger" id="hamburgerMenu">
@@ -159,14 +150,72 @@ animate();
   <span></span>
 </div>
 
+
+<!-- 🌐 Menu Desktop -->
+<div class="navbar">
+  <a href="#top"><i class="fas fa-home"></i> Início</a>
+  <a href="#musics"><i class="fas fa-music"></i> Músicas</a>
+  <a href="#api"><i class="fas fa-globe"></i> APIs</a>
+  <a href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Discord</a>
+  <a id="userLinkDesktop" href="login.html" target="_blank"><i class="fas fa-server"></i> Login</a>
+</div>
+
+<!-- 🍔 Menu Mobile -->
 <div class="side-menu" id="sideMenu">
   <a href="#top"><i class="fas fa-home"></i> Início</a>
   <a href="#musics"><i class="fas fa-music"></i> Músicas</a>
   <a href="#api"><i class="fas fa-globe"></i> APIs</a>
   <a href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Discord</a>
-  <a href="user-dashboard.html" target="_blank"><i class="fas fa-user"></i> User</a>
-  <a href="login.html" target="_blank"><i class="fas fa-server"></i> Login</a>
+  <a id="userLinkMobile" href="login.html" target="_blank"><i class="fas fa-server"></i> Login</a>
 </div>
+
+
+<script type="module">
+  import { auth } from "./js/Auth.js";
+  import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js";
+
+  const userLinkDesktop = document.getElementById("userLinkDesktop");
+  const userLinkMobile  = document.getElementById("userLinkMobile");
+
+  const nome = localStorage.getItem("username");
+  const email = localStorage.getItem("useremail");
+  const foto = localStorage.getItem("userphoto");
+
+  // Função para alterar o menu
+  function setUserMenu(isLogged) {
+    if (isLogged) {
+      userLinkDesktop.innerHTML = `<i class="fas fa-user"></i> User`;
+      userLinkDesktop.href = "user-dashboard.html";
+
+      userLinkMobile.innerHTML = `<i class="fas fa-user"></i> User`;
+      userLinkMobile.href = "user-dashboard.html";
+    } else {
+      userLinkDesktop.innerHTML = `<i class="fas fa-server"></i> Login`;
+      userLinkDesktop.href = "login.html";
+
+      userLinkMobile.innerHTML = `<i class="fas fa-server"></i> Login`;
+      userLinkMobile.href = "login.html";
+    }
+  }
+
+  // Inicializa baseado no localStorage (carrega instantaneamente)
+  if (nome && email) {
+    setUserMenu(true);
+  } else {
+    setUserMenu(false);
+  }
+
+  // Monitora login real do Firebase
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      setUserMenu(true);
+    } else {
+      setUserMenu(false);
+      localStorage.clear();
+    }
+  });
+</script>
+
 
 <div class="menu-overlay" id="menuOverlay"></div>
 
