@@ -1,254 +1,382 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="css/pages.css">
-  <link rel="stylesheet" href="css/menu.css">
-  <title>Central do Usuário</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Gerenciamento de Jogadores</title>
 
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/menu.css" />
+  <link rel="stylesheet" href="css/modal.css" />
+  <link rel="stylesheet" href="css/pages.css" />
+  <link rel="shortcut icon" href="img/ADN_Red.png" type="image/x-icon" />
+
+  <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-  <link rel="shortcut icon" href="img/ADN_Red.png" type="image/x-icon"/>
 
- <style>
-  :root {
-    --cor-primaria: #4A90E2;
-    --cor-secundaria: #357ABD;
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
 
-    --cor-texto: #333;
-    --cor-box: #fff;
+    h1 {
+      color: #00bfa5;
+      text-align: center;
+    }
 
-    --cor-logout: #e74c3c;
-    --cor-logout-hover: #c0392b;
+    .player-list {
+      margin-top: 20px;
+      background: #161b22;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00bfa555;
+      max-height: 500px;
+      overflow-y: auto;
+    }
 
-    --gradient-neon: linear-gradient(135deg, #6a11cb, #2575fc);
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95em;
+    }
 
-    --radius: 14px;
-    --radius-large: 18px;
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid #2d333b;
+      text-align: left;
+      white-space: nowrap;
+    }
 
-    --shadow: 0 4px 15px rgba(0,0,0,0.15);
-  }
+    th {
+      color: #00ffa5;
+      position: sticky;
+      top: 0;
+      background: #161b22;
+      z-index: 2;
+    }
 
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+    tr:hover {
+      background-color: #1e252f;
+    }
 
-  body {
-    font-family: 'Segoe UI', sans-serif;
-    background: var(--gradient-neon);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
+    .add-form, .search-box {
+      background: #1c2128;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
 
-  /* ===== LOADING ===== */
-  #loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #fff;
-    gap: 16px;
-    font-size: 1.1rem;
-    animation: fadeIn .5s ease;
-  }
+    .add-form input, .add-form select, .search-box input {
+      flex: 1;
+      padding: 8px;
+      border: none;
+      border-radius: 5px;
+      outline: none;
+      min-width: 120px;
+    }
 
-  .spinner {
-    width: 48px;
-    height: 48px;
-    border: 5px solid rgba(255,255,255,0.2);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin .6s linear infinite;
-  }
+    .add-form button, .search-box button {
+      background: #00bfa5;
+      color: #fff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-weight: bold;
+    }
 
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
+    .add-form button:hover, .search-box button:hover {
+      background: #00ffa5;
+      color: #000;
+    }
 
-  /* ===== DASHBOARD ===== */
-  #dashboard {
-    display: none;
-    background: var(--cor-box);
-    padding: 40px 32px;
-    border-radius: var(--radius-large);
-    width: min(420px, 94%);
-    text-align: center;
-    box-shadow: var(--shadow);
-    animation: fadeIn .4s ease;
-  }
+    .ban-btn {
+      background: #ff4444;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(14px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+    .ban-btn:hover {
+      background: #ff7777;
+    }
 
-  #dashboard h2 {
-    color: var(--cor-primaria);
-    margin-bottom: 20px;
-    font-weight: 600;
-  }
+    .unban-btn {
+      background: #00bfa5;
+      border: none;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
 
-  #user-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid var(--cor-primaria);
-    margin-bottom: 16px;
-    transition: transform .25s ease;
-  }
+    .unban-btn:hover {
+      background: #00ffa5;
+      color: #000;
+    }
 
-  #user-avatar:hover {
-    transform: scale(1.05);
-  }
+    #adminLock {
+      text-align: center;
+      margin-top: 80px;
+      font-size: 1.2em;
+      color: #ff6666;
+      display: none;
+    }
 
-  .user-info p {
-    color: var(--cor-texto);
-    margin: 6px 0;
-  }
+    /* 🔍 Barra de pesquisa */
+    .search-box i {
+      color: #00ffa5;
+      margin-right: 5px;
+    }
 
-  /* ===== BOTÕES ===== */
-  button {
-    width: 100%;
-    padding: 14px;
-    margin-top: 12px;
-    border: none;
-    border-radius: var(--radius);
-    font-size: 1rem;
-    cursor: pointer;
-    background: var(--cor-primaria);
-    color: #fff;
-    transition: .25s ease;
-    box-shadow: var(--shadow);
-  }
+    /* Responsivo */
+    @media (max-width: 768px) {
+      table {
+        font-size: 0.8em;
+      }
+      th, td {
+        padding: 6px;
+      }
+    }
 
-  button:hover {
-    background: var(--cor-secundaria);
-    transform: translateY(-2px);
-  }
+.player-list {
+  margin-top: 20px;
+  background: rgba(22, 27, 34, 0.85);
+  backdrop-filter: blur(6px);
+  border-radius: 10px;
+  box-shadow: 0 0 10px #00bfa555;
+  overflow: hidden;
+  max-height: 400px; /* altura máxima */
+  display: flex;
+  flex-direction: column;
+}
 
-  .logout-btn {
-    background: var(--cor-logout);
-  }
+.player-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
-  .logout-btn:hover {
-    background: var(--cor-logout-hover);
-  }
+.player-list thead {
+  background: rgba(0, 191, 165, 0.2);
+  color: #00ffa5;
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(8px);
+  z-index: 2;
+}
 
-  /* ===== ADMIN ===== */
-  #admin-section {
-    margin-top: 25px;
-    padding-top: 20px;
-    border-top: 2px solid #ddd;
-    display: none;
-  }
+.player-list th,
+.player-list td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #2d333b;
+  white-space: nowrap;
+}
 
-  #admin-section h3 {
-    color: var(--cor-primaria);
-    margin-bottom: 10px;
-    font-weight: 600;
-  }
-</style>
+.player-list tbody {
+  display: block;
+  overflow-y: auto;
+  max-height: 340px; /* define scroll interno */
+}
+
+.player-list thead, 
+.player-list tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.player-list tbody::-webkit-scrollbar {
+  width: 6px;
+}
+
+.player-list tbody::-webkit-scrollbar-thumb {
+  background-color: #00bfa5;
+  border-radius: 4px;
+}
+
+.player-list tbody::-webkit-scrollbar-track {
+  background-color: #1b1f25;
+}
 
 
+  </style>
 </head>
-
 <body>
 
-
-<div id="loading">
-    <div class="spinner"></div>
-    Carregando...
+<!-- 🌐 Navbar -->
+<div class="navbar">
+  <a href="index.html"><i class="fas fa-home"></i> Voltar</a>
+  <a href="user-dashboard.html"><i class="fas fa-shield-alt"></i> Painel</a>
+  <a href="https://discord.gg/spCcTWFWBR" target="_blank"><i class="fab fa-discord"></i> Discord</a>
 </div>
 
-<div id="dashboard">
+<h1>🎮 Gerenciamento de Jogadores</h1>
+<div id="adminLock">⛔ Acesso negado. Apenas administradores podem ver esta página.</div>
 
-  <h2><i class="fas fa-user-circle"></i> Central do Usuário</h2>
+<!-- 🔍 Pesquisa -->
+<div class="search-box" id="searchBox" style="display:none;">
+  <i class="fas fa-search"></i>
+  <input type="text" id="searchInput" placeholder="Pesquisar por nome, ID ou tag..." />
+  <button onclick="searchPlayers()">Buscar</button>
+  <button onclick="loadPlayers()">Limpar</button>
+</div>
 
-  <img id="user-avatar" src="img/anonimo.png" alt="Foto do usuário"/>
+<!-- ➕ Adicionar -->
+<div class="add-form" id="adminContent" style="display:none;">
+  <input type="text" id="nameInput" placeholder="Nome do jogador" />
+  <input type="number" id="idInput" placeholder="ID do jogador" />
+  <select id="tagInput">
+    <option value="Livre">Livre</option>
+    <option value="Banido">Banido</option>
+  </select>
+  <button id="addBtn">Adicionar</button>
+</div>
 
-  <div class="user-info">
-    <p><strong>Nome:</strong> <span id="user-name">Carregando...</span></p>
-    <p><strong>Email:</strong> <span id="user-email">Carregando...</span></p>
-    <p><strong>Papel:</strong> <span id="user-role">Carregando...</span></p>
-  </div>
-
-  <button onclick="voltarParaInicio()"><i class="fas fa-arrow-left"></i> Voltar</button>
-  <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
-
-  <!-- Admin -->
-  <div id="admin-section">
-    <h3><i class="fas fa-shield-alt"></i> Área do Admin</h3>
-
-    <button onclick="window.location.href='users.html'">
-      <i class="fas fa-users"></i> Gerenciar Usuários
-    </button>
-
-    <button onclick="window.location.href='players.html'">
-      <i class="fas fa-gamepad"></i> Gerenciar Players
-    </button>
-  </div>
-
+<!-- 🧾 Lista -->
+<div class="player-list" id="playerList" style="display:none;">
+  <table>
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>ID</th>
+        <th>Tag</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody id="playersTable">
+      <tr><td colspan="4">Carregando jogadores...</td></tr>
+    </tbody>
+  </table>
 </div>
 
 
 
+<!-- 🔒 Controle de acesso -->
 <script type="module">
   import { auth, db } from "./js/Auth.js";
-  import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-auth.js";
   import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.5.0/firebase-firestore.js";
 
-  // Listener único
-  onAuthStateChanged(auth, async (user) => {
+
+  const adminContent = document.getElementById("adminContent");
+  const playerList = document.getElementById("playerList");
+  const adminLock = document.getElementById("adminLock");
+  const searchBox = document.getElementById("searchBox");
+
+  auth.onAuthStateChanged(async (user) => {
     if (!user) {
-      window.location.href = "login.html";
+      alert("⚠️ Faça login para acessar esta página.");
+      window.location.href = "index.html";
       return;
     }
 
-    try {
-      const userDocRef = doc(db, "users", user.email);
-      const userDocSnap = await getDoc(userDocRef);
+    const ref = doc(db, "users", user.email);
+    const snap = await getDoc(ref);
 
-      let role = "Usuário Comum";
-
-      if (userDocSnap.exists()) {
-        role = userDocSnap.data().role || role;
-      }
-
-      // Atualiza na tela
-     document.getElementById("user-role").innerText =
-      role.charAt(0).toUpperCase() + role.slice(1);
-
-     // EXIBE A SEÇÃO DE ADMIN SE FOR ADMIN
-     if (role.toLowerCase() === "admin") {
-      document.getElementById("admin-section").style.display = "block";
-     }
-
-      document.getElementById("user-role").innerText =
-        role.charAt(0).toUpperCase() + role.slice(1);
-
-    } catch (error) {
-      console.error("Erro ao buscar papel:", error);
-      document.getElementById("user-role").innerText = "Erro ao carregar";
+    if (!snap.exists() || snap.data().role !== "admin") {
+      adminLock.style.display = "block";
+      return;
     }
 
-    // mostra dashboard
-    document.getElementById("loading").style.display = "none";
-    document.getElementById("dashboard").style.display = "block";
+    // ✅ Exibe tudo
+    adminLock.style.display = "none";
+    adminContent.style.display = "flex";
+    playerList.style.display = "block";
+    searchBox.style.display = "flex";
+    loadPlayers();
   });
+</script>
 
-  // Funções globais
-  window.voltarParaInicio = () => window.location.href = "index.html";
+<!-- ⚙️ Scripts da API -->
+<script>
+  const tableBody = document.getElementById("playersTable");
+  const addBtn = document.getElementById("addBtn");
+  let allPlayers = [];
+async function loadPlayers() {
+  tableBody.innerHTML = `<tr><td colspan="4">Carregando...</td></tr>`;
+  try {
+    const res = await fetch("/api/players");
+    const players = await res.json();
+    allPlayers = players;
+    renderPlayers(players);
+    document.querySelector(".player-list tbody").scrollTop = 0; // 🆕
+  } catch (err) {
+    tableBody.innerHTML = `<tr><td colspan="4">❌ Erro: ${err.message}</td></tr>`;
+  }
+}
 
-  window.logout = () => {
-    signOut(auth).then(() => {
-      localStorage.clear();
-      window.location.href = "login.html";
+
+  function renderPlayers(players) {
+    if (!players.length) {
+      tableBody.innerHTML = `<tr><td colspan="4">Nenhum jogador encontrado</td></tr>`;
+      return;
+    }
+
+    tableBody.innerHTML = players.map(p => `
+      <tr>
+        <td>${p.Name}</td>
+        <td>${p.Id_player}</td>
+        <td style="color: ${p.Tag === "Banido" ? "red" : "#00ffa5"};">${p.Tag}</td>
+        <td>
+          ${p.Tag === "Banido"
+            ? `<button class="unban-btn" onclick="toggleBan('${p.Id_player}', 'Livre')">Desbanir</button>`
+            : `<button class="ban-btn" onclick="toggleBan('${p.Id_player}', 'Banido')">Banir</button>`}
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function searchPlayers() {
+    const query = document.getElementById("searchInput").value.toLowerCase().trim();
+    if (!query) return renderPlayers(allPlayers);
+
+    const filtered = allPlayers.filter(p =>
+      String(p.Id_player).includes(query) ||
+      p.Name.toLowerCase().includes(query) ||
+      p.Tag.toLowerCase().includes(query)
+    );
+
+    renderPlayers(filtered);
+  }
+
+  async function toggleBan(Id_player, newTag) {
+    const res = await fetch(`/api/players/${Id_player}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Tag: newTag }),
     });
-  };
+    await res.json();
+    loadPlayers();
+  }
+
+  addBtn.addEventListener("click", async () => {
+    const Name = document.getElementById("nameInput").value.trim();
+    const Id_player = document.getElementById("idInput").value.trim();
+    const Tag = document.getElementById("tagInput").value;
+    if (!Name || !Id_player) return alert("⚠️ Preencha todos os campos!");
+
+    const res = await fetch("/api/players", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Name, Id_player, Tag }),
+    });
+    await res.json();
+    loadPlayers();
+  });
 
   
 </script>
