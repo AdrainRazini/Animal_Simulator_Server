@@ -101,74 +101,60 @@ local RESULT = {
 	DESCONHECIDO = "Desconhecido"
 }
 
--- 🔹 Função segura para buscar dados do jogador na API
+-- 🔹 Função para buscar jogador na API
 local function getplayer(id)
 	local url = "https://animal-simulator-server.vercel.app/api/player/" .. tostring(id)
 	local response
 
-	---------------------------------------------------
-	-- 1️⃣ TENTATIVA PRINCIPAL (HttpService:GetAsync)
-	---------------------------------------------------
-	local okGet, result = pcall(function()
+	-- 1️⃣ Tenta HttpService:GetAsync
+	local ok1, res1 = pcall(function()
 		return HttpService:GetAsync(url)
 	end)
-
-	if okGet then
-		response = result
-	else
-		warn("❌ GetAsync falhou:", result)
+	if ok1 then
+		response = res1
 	end
 
-	---------------------------------------------------
-	-- 2️⃣ FALLBACK ALTERNATIVO (game:HttpGet)
-	---------------------------------------------------
+	-- 2️⃣ Fallback
 	if not response then
-		local okFallback, fallback = pcall(function()
+		local ok2, res2 = pcall(function()
 			return game:HttpGet(url)
 		end)
-
-		if okFallback then
-			response = fallback
+		if ok2 then
+			response = res2
 		else
-			warn("❌ game:HttpGet falhou:", fallback)
 			return RESULT.ERRO
 		end
 	end
 
-	---------------------------------------------------
-	-- 3️⃣ DECODIFICAÇÃO DO JSON
-	---------------------------------------------------
-	if not response or response == "" then
-		warn("⚠️ Resposta vazia da API")
-		return RESULT.ERRO
-	end
-
+	-- 3️⃣ Decodificar JSON
 	local okJson, data = pcall(function()
 		return HttpService:JSONDecode(response)
 	end)
-
-	if not okJson or type(data) ~= "table" then
-		warn("⚠️ JSON inválido:", data)
+	if not okJson then
 		return RESULT.ERRO
 	end
 
-	---------------------------------------------------
-	-- 4️⃣ ANÁLISE DE RETORNO DA API
-	---------------------------------------------------
-	if data.success == false then
-		if data.message == "Jogador não encontrado" then
-			return RESULT.INEXISTENTE
-		end
+	-- 4️⃣ **TRATAMENTO ESPECIAL PARA SUA API**
+	-- ✔ Sucesso = true → tag real
+	if data.success == true then
+		return data.Tag or RESULT.DESCONHECIDO
+	end
+
+	-- ✔ Sucesso = false → ver detalhes
+	if data.message == "Jogador não encontrado" 
+		or data.message == "Jogador não encontrado (cache criado)" then
+		return RESULT.INEXISTENTE
+	end
+
+	-- ✔ "Erro interno" → trate como DESCONHECIDO (não erro)
+	if data.message == "Erro interno, mas resposta segura enviada" then
 		return RESULT.DESCONHECIDO
 	end
 
-	-- Sucesso mas sem tag?
-	if not data.Tag then
-		return RESULT.DESCONHECIDO
-	end
-
-	return tostring(data.Tag)
+	-- Qualquer outra falha
+	return RESULT.DESCONHECIDO
 end
+
 
 -- 🧩 Uso
 local tag = getplayer(player.UserId)
