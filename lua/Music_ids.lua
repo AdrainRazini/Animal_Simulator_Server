@@ -458,35 +458,46 @@ end)
 
 
 -- Função para criar a lista de nomes
-function getnamesbox(list)
+
+local function getnamesbox(list)
 	local existingIds = {}
 
-	-- Marca todos os IDs já existentes em listMusics
+	-- 1️⃣ Marcar todos os IDs existentes em listMusics
 	for _, music in ipairs(listMusics) do
-		existingIds[music.Obj] = true
+		existingIds[tostring(music.Obj)] = true
 	end
 
-	-- Processa novos IDs, evitando duplicatas
-	for _, id in ipairs(list) do
-		if not existingIds[tostring(id)] then
+	-- 2️⃣ Processar novos IDs recebidos
+	for _, entry in ipairs(list) do
+		local id = entry.id
+		local idStr = tostring(id)
+
+		-- Ignorar se já existe
+		if not existingIds[idStr] then
+
 			local success, info = pcall(function()
 				return MarketplaceService:GetProductInfo(id)
 			end)
 
-			local newMusic = {}
-			if success and info then
-				newMusic = {name = info.Name, Obj = tostring(id)}
-			else
-				newMusic = {name = "???", Obj = tostring(id)}
-			end
+			-- 3️⃣ Só adiciona se for válido
+			if success and info and info.Name and info.Name ~= "" then
+				local newMusic = {
+					name = info.Name,
+					Obj = idStr
+				}
 
-			table.insert(listMusics, newMusic)        -- adiciona direto na lista principal
-			existingIds[tostring(id)] = true          -- marca como existente
+				table.insert(listMusics, newMusic)
+				existingIds[idStr] = true
+
+			else
+				warn("❌ ID inválido ou falhou ao buscar:", id)
+			end
 		end
 	end
 
-	return listMusics -- retorna a lista atualizada
+	return listMusics
 end
+
 
 -- Preenche a lista
 local Lista_N

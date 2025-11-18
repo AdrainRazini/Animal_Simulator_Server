@@ -2849,22 +2849,6 @@ end)
 
 --=======================--
 
-
-
-
-
--- Botão para pegar a Fireball manual
---[[
-Music_Gui = Regui.CreateButton(MusicTab, {
-	Text = "Music_Gui",
-	Color = "White",
-	BGColor = "Button",
-	TextSize = 16
-}, function()
-	loadstring(game:HttpGet("https://animal-simulator-server.vercel.app/lua/Music_ids.lua"))() 
-end)
-]]
-
 local Save_Id = "0"
 
 -- Label que mostra info da música
@@ -2977,6 +2961,16 @@ local MusicButton = Regui.CreateButton(MusicTab, {
 	if selectorMusics then
 		selectorMusics.Reset(getnamesbox(Listaid))
 	end
+end)
+
+
+Music_Gui = Regui.CreateButton(MusicTab, {
+	Text = "Music_Gui",
+	Color = "White",
+	BGColor = "Button",
+	TextSize = 16
+}, function()
+	loadstring(game:HttpGet("https://animal-simulator-server.vercel.app/lua/Music_ids.lua"))() 
 end)
 
 
