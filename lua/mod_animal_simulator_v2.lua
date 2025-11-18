@@ -183,12 +183,12 @@ if tag == "Banido" then
 	print("🚫 Jogador banido — execução interrompida.")
 	return -- ❌ interrompe aqui
 else
-	
-	
+
+
 	-- Continua normalmente para qualquer outro caso
 	print("Status da conta:", tag)
-	
-	
+
+
 end
 
 
@@ -2963,6 +2963,12 @@ local MusicButton = Regui.CreateButton(MusicTab, {
 	end
 end)
 
+
+Label_Music_Info = Regui.CreateLabel(MusicTab, {
+	Text = "_Musical Interface_",
+	Color = "White",
+	Alignment = "Center"
+})
 
 Music_Gui = Regui.CreateButton(MusicTab, {
 	Text = "Music_Gui",
