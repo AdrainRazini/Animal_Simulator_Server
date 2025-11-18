@@ -74,7 +74,7 @@ local function GetObjFromAPI(url)
 end
 
 -- 🔹 Busca as duas listas
-local Listaid = GetFromAPI(API_URL)
+local Listaid = GetFromAPI(API_URL) 
 local listMusics = {}
 
 
@@ -92,6 +92,7 @@ else
 	warn("⚠️ Falha ao carregar músicas da API, usando lista padrão.")
 	listMusics = {
 		{name = "Nill", Obj = 0},
+		{name = "js", Obj =103695219371872}
 	}
 end
 
@@ -276,6 +277,18 @@ GL1["CD_Icon"].Image = "rbxassetid://70716433051234"
 GL1["CD_Icon"].BackgroundTransparency = 1
 
 -- ==========================
+-- 💿 Ícone do Tb
+-- ==========================
+GL1["CD_Icon_2"] = Instance.new("ImageLabel")
+GL1["CD_Icon_2"].Parent = GL1["frame"]
+GL1["CD_Icon_2"].Size = UDim2.new(0, 90, 0, 90)
+GL1["CD_Icon_2"].Position = UDim2.new(0, 15, 0.5, -15)
+GL1["CD_Icon_2"].Image = "rbxassetid://70716433051234"
+GL1["CD_Icon_2"].Visible = false
+GL1["CD_Icon_2"].BackgroundTransparency = 1
+
+
+-- ==========================
 -- ▶️ Botões de controle
 -- ==========================
 GL1["Input_Angle_L"] = Instance.new("ImageButton")
@@ -325,6 +338,7 @@ GL1["Loading_Icon"].BackgroundTransparency = 1
 
 
 
+
 --==========================--
 -- FUNÇÕES PRINCIPAIS
 --==========================--
@@ -356,6 +370,9 @@ local function playCurrentTrack(selectedObj)
 	else
 		GL1["Name_id"].Text = "♪ Tocando: Faixa " .. tostring(currentIndex)
 	end
+	
+	local thumbUrl = string.format("https://www.roblox.com/asset-thumbnail/image?assetId=%s&width=420&height=420&format=png",id)
+
 
 	isPlaying = true
 	GL1["Input_Bnt"].Image = Data_Icon.fa_bx_pause_circle
