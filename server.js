@@ -290,8 +290,8 @@ app.get("/api/player/:id", async (req, res) => {
         Tag: "Livre",
         cached_fake: true
       });
-
-      return res.status(202).json({
+    //202
+      return res.status(200).json({
         success: false,
         message: "Jogador não encontrado (cache criado)",
         Id_player: numericId,
