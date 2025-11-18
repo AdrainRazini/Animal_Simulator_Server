@@ -20,20 +20,32 @@ local API_URL_Obj = "https://animal-simulator-server.vercel.app/api/musics_obj"
 local API_URL_Obj_Lua = "https://animal-simulator-server.vercel.app/api/musics_obj_lua"
 
 -- Função genérica para buscar de qualquer endpoint
+
+-- Função genérica para buscar de qualquer endpoint
 local function GetFromAPI(url)
 	local success, result = pcall(function()
 		local response = game:HttpGet(url)
 		return HttpService:JSONDecode(response)
 	end)
 
-	if success then
-		print("✅ Dados carregados da API:", url, "Total:", #result)
-		return result
-	else
+	if not success then
 		warn("⚠️ Erro ao buscar dados da API:", url, result)
 		return {}
 	end
+
+	-- Caso venha exatamente: [{"id": 123}, {"id": 456}]
+	local list = {}
+
+	for _, entry in ipairs(result) do
+		if entry.id then
+			table.insert(list, tonumber(entry.id))
+		end
+	end
+
+	print("✅ Dados carregados:", url, "Total:", #list)
+	return list
 end
+
 
 local function GetObjFromAPI(url)
 	local success, result = pcall(function()
@@ -458,44 +470,34 @@ end)
 
 
 -- Função para criar a lista de nomes
-
-local function getnamesbox(list)
+function getnamesbox(list)
 	local existingIds = {}
 
-	-- 1️⃣ Marcar todos os IDs existentes em listMusics
+	-- Marca todos os IDs já existentes em listMusics
 	for _, music in ipairs(listMusics) do
-		existingIds[tostring(music.Obj)] = true
+		existingIds[music.Obj] = true
 	end
 
-	-- 2️⃣ Processar novos IDs recebidos
-	for _, entry in ipairs(list) do
-		local id = entry.id
-		local idStr = tostring(id)
-
-		-- Ignorar se já existe
-		if not existingIds[idStr] then
-
+	-- Processa novos IDs, evitando duplicatas
+	for _, id in ipairs(list) do
+		if not existingIds[tostring(id)] then
 			local success, info = pcall(function()
 				return MarketplaceService:GetProductInfo(id)
 			end)
 
-			-- 3️⃣ Só adiciona se for válido
-			if success and info and info.Name and info.Name ~= "" then
-				local newMusic = {
-					name = info.Name,
-					Obj = idStr
-				}
-
-				table.insert(listMusics, newMusic)
-				existingIds[idStr] = true
-
+			local newMusic = {}
+			if success and info then
+				newMusic = {name = info.Name, Obj = tostring(id)}
 			else
-				warn("❌ ID inválido ou falhou ao buscar:", id)
+				newMusic = {name = "???", Obj = tostring(id)}
 			end
+
+			table.insert(listMusics, newMusic)        -- adiciona direto na lista principal
+			existingIds[tostring(id)] = true          -- marca como existente
 		end
 	end
 
-	return listMusics
+	return listMusics -- retorna a lista atualizada
 end
 
 
