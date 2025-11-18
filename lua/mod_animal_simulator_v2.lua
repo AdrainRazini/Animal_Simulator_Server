@@ -163,7 +163,7 @@ local titleText = ({
 	Livre = "✅ Alert: Livre",
 	Banido = "🚫 Alert: Banido",
 	Erro = "⚠️ Alert: Erro ao consultar API",
-	Inexistente = "❓ Alert: ADN_MOD",
+	Inexistente = "✅ Alert: ADN_MOD",
 })[tag] or ("ℹ️ Alert: Tag desconhecida (" .. tostring(tag) .. ")")
 
 -- 🔔 Notificação segura
