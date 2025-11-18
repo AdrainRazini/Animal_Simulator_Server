@@ -178,35 +178,17 @@ if PlayerGui and Regui and Regui.Notifications then
 	end)
 end
 
-
 -- 🧩 Log + controle de fluxo
 if tag == "Banido" then
 	print("🚫 Jogador banido — execução interrompida.")
 	return -- ❌ interrompe aqui
-end
-
--- Se for Livre → simplesmente continua
-if tag == "Livre" then
-	print("Status da conta: Livre")
-	-- seguir fluxo normal
 else
-	-- Qualquer tag diferente de Banido e Livre abre o diálogo avançado
-	Regui.NotificationDialog(Window.Frame.Parent, {
-		Title = "Função Avançada!",
-		Text = "Save Player?",
-		Icon = "fa_envelope",
-		Tempo = 0 -- 0 = só fecha no clique
-	}, function(result)
-		if result then
-			-- ✔ Ação quando o jogador clica em OK
-			print("Função avançada confirmada.")
-		else
-			-- ✔ Ação quando clica em Cancelar
-			print("Função avançada cancelada.")
-		end
-	end)
-
+	
+	
+	-- Continua normalmente para qualquer outro caso
 	print("Status da conta:", tag)
+	
+	
 end
 
 
