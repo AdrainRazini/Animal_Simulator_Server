@@ -157,7 +157,6 @@ createDataRoute("/api/players", "players", playersFile, "players");
 // ====================
 
 
-
 // Função auxiliar para buscar jogador por ID
 async function getPlayerById(id) {
   const numericId = Number(id);
@@ -209,24 +208,6 @@ app.post("/api/players", async (req, res) => {
   }
 });
 
-// Listar todos os jogadores (com cache)
-app.get("/api/players", async (req, res) => {
-  try {
-    const now = Date.now();
-    if (memoryCache.players.data.length > 0 && (now - memoryCache.players.lastFetch < CACHE_TTL)){
-      return res.json(memoryCache.players.data);
-    }
-
-    const snapshot = await getDocs(collection(db, "players"));
-    const players = snapshot.docs.map(doc => doc.data());
-
-    memoryCache.players = { data: players, lastFetch: now };
-    res.json(players);
-  } catch (err) {
-    console.error("❌ Erro ao listar jogadores:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // Atualizar tag de jogador (banir/desbanir)
 app.put("/api/players/:id", async (req, res) => {
@@ -371,43 +352,6 @@ app.post("/api/musics_obj", async (req, res) => {
 });
 
 
-// GET: Retornar todos os objetos no formato JSON (com cache em memória + local)
-app.get("/api/musics_obj", async (req, res) => {
-  try {
-    const now = Date.now();
-
-    // 1. Cache em memória (RAM)
-    if (memoryCache.musics_obj.data.length > 0 && (now - memoryCache.musics_obj.lastFetch < CACHE_TTL)) {
-      console.log("⚡ /api/musics_obj → cache: memória");
-      return res.json(memoryCache.musics_obj.data);
-    }
-
-    //  2. Cache local (fs)
-    const localCache = readLocalCache(musicsObjFile);
-    if (localCache.length > 0) {
-      memoryCache.musics_obj = { data: localCache, lastFetch: now };
-      console.log("⚡ /api/musics_obj → cache: disco");
-      return res.json(localCache);
-    }
-
-    //  3. Firestore (fallback)
-    const snapshot = await getDocs(collection(db, "musics_obj"));
-    const musics = snapshot.docs.map(doc => doc.data());
-
-    // Atualiza caches
-    memoryCache.musics_obj = { data: musics, lastFetch: now };
-    writeLocalCache(musicsObjFile, musics);
-
-    console.log("⚡ /api/musics_obj → fonte: Firestore");
-    res.json(musics);
-  } catch (err) {
-    console.error("❌ Erro ao buscar musics_obj:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-
 // GET: Retornar todos os objetos no formato LUA (Module) usando cache local
 app.get("/api/musics_obj_lua", async (req, res) => {
   try {
@@ -474,45 +418,6 @@ app.post("/api/musics", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
-
-
-// GET: Listar todos os IDs (com cache em memória + local)
-app.get("/api/musics", async (req, res) => {
-  try {
-    const now = Date.now();
-
-    // 1. Cache em memória (RAM)
-    if (memoryCache.musics.data.length > 0 && (now - memoryCache.musics.lastFetch < CACHE_TTL)) {
-      console.log("⚡ /api/musics → cache: memória");
-      return res.json(memoryCache.musics.data);
-    }
-
-    // 2. Cache local (fs)
-    const localCache = readLocalCache(musicsFile);
-    if (localCache.length > 0) {
-      memoryCache.musics = { data: localCache, lastFetch: now };
-      console.log("⚡ /api/musics → cache: disco");
-      return res.json(localCache);
-    }
-
-    // 3. Firestore (fallback)
-    const snapshot = await getDocs(collection(db, "musics"));
-    const list = snapshot.docs.map(doc => doc.data().id);
-
-    // Atualiza caches
-    memoryCache.musics = { data: list, lastFetch: now };
-    writeLocalCache(musicsFile, list);
-
-    console.log("⚡ /api/musics → fonte: Firestore");
-    res.json(list);
-  } catch (err) {
-    console.error("❌ Erro ao ler do Firestore:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
 
 
 // ====================
