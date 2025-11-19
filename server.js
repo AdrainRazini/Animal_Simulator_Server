@@ -416,7 +416,7 @@ app.post("/api/musics", async (req, res) => {
 // Criar rotas automáticas de leitura
 createDataRoute("/api/musics", "musics", musicsFile, "musics");
 createDataRoute("/api/musics_obj", "musics_obj", musicsObjFile, "musics_obj");
-
+createDataRoute("/api/players", "players", playersFile, "players");
 // ====================
 // Página inicial
 // ====================
