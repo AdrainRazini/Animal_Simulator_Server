@@ -147,10 +147,6 @@ function createDataRoute(endpoint, cacheKey, localFile, firestoreCollection) {
   });
 }
 
-// Criar rotas automáticas de leitura
-createDataRoute("/api/musics", "musics", musicsFile, "musics");
-createDataRoute("/api/musics_obj", "musics_obj", musicsObjFile, "musics_obj");
-createDataRoute("/api/players", "players", playersFile, "players");
 
 // ====================
 // API: Gerenciar Jogadores
@@ -264,14 +260,7 @@ app.get("/api/player/:id", async (req, res) => {
 
     // 2️⃣ Se não existir → cria cache temporário e retorna 202 (sem erro)
     if (!playerDoc) {
-      // Cache manual básico só para "lembrar" das consultas
-      memoryCache.players.data.push({
-        Id_player: numericId,
-        Name: "Desconhecido",
-        Tag: "Livre",
-        cached_fake: true
-      });
-    //202
+    //202 mas o roblox acha que é erro 
       return res.status(200).json({
         success: false,
         message: "Jogador não encontrado (cache criado)",
@@ -419,6 +408,12 @@ app.post("/api/musics", async (req, res) => {
   }
 });
 
+
+
+
+// Criar rotas automáticas de leitura
+createDataRoute("/api/musics", "musics", musicsFile, "musics");
+createDataRoute("/api/musics_obj", "musics_obj", musicsObjFile, "musics_obj");
 
 // ====================
 // Página inicial
