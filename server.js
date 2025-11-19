@@ -139,10 +139,7 @@ function createDataRoute(endpoint, cacheKey, localFile, firestoreCollection) {
 }
 
 
-// ====================
 // API: Gerenciar Jogadores
-// ====================
-
 
 // Função auxiliar para buscar jogador por ID
 async function getPlayerById(id) {
