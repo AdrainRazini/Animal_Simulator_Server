@@ -1,3 +1,26 @@
+
+/* :) */
+console.log("Sistema Ativo");
+
+// Verifica se a página atual existe; se não, redireciona para 404.html
+window.addEventListener('DOMContentLoaded', () => {
+    const urlAtual = window.location.pathname;
+
+    fetch(urlAtual, { method: 'HEAD' })
+        .then(response => {
+            if (!response.ok) {
+                window.location.href = "404.html";
+            }
+            // Se a página existe, não faz nada
+        })
+        .catch(error => {
+            console.error("Erro ao verificar a URL:", error);
+            window.location.href = "404.html";
+        });
+});
+
+
+
 const form = document.getElementById("musicForm");
 const musicsList = document.getElementById("musicsList");
 const counter = document.getElementById("counter");
@@ -50,7 +73,7 @@ function openModal(name, obj) {
   modal.style.opacity = "1";
 }
 
-// === 🔹 Botão de copiar código (inalterado) ===
+// === 🔹 Botão de copiar código -- Copia o Script para o Adn_Mod
 document.getElementById("copyBtn").addEventListener("click", () => {
   const luaCode = document.getElementById("luaCode").innerText;
   navigator.clipboard.writeText(luaCode);
@@ -236,6 +259,5 @@ logo.addEventListener("click", () => {
   open = !open;
   tooltip.style.display = open ? "flex" : "none";
 });
-
 
 
