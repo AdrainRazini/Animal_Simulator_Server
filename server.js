@@ -13,7 +13,7 @@ import { collection, getDocs, addDoc, updateDoc} from "firebase/firestore";
 import { db } from "./firebase.js";
 
 // Coleção de Memoria
-import { memoryCache, CACHE_TTL, clearAllCache, GetKeyDt, DelKeyDt, UpdKeyDt } from "./fileCache/Cache.js"; // Memoria Iportada
+import { memoryCache, CACHE_TTL} from "./fileCache/Cache.js"; // Memoria Iportada
 
 // Corrigir __dirname em ES Modules
 const __filename = fileURLToPath(import.meta.url);
