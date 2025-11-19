@@ -430,9 +430,9 @@ const isServerless = process.env.VERCEL || process.env.AWS_REGION;
 // Se for ambiente serverless → exporta app (sem escutar porta)
 if (!isServerless) {
   app.listen(PORT, () => {
-    console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
-    console.log(`📁 Lua: http://localhost:${PORT}/lua/mod_animal_simulator_v2.lua`);
-    console.log(`🎵 API: http://localhost:${PORT}/api/musics`);
+    console.log(`Htp: http://localhost:${PORT}`);
+    console.log(`Lua: http://localhost:${PORT}/lua/mod_animal_simulator_v2.lua`);
+    console.log(`API: http://localhost:${PORT}/api/musics`);
   });
 } else {
   console.log("⚡ Executando em ambiente serverless (Vercel)");
