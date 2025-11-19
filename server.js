@@ -1,5 +1,6 @@
-
-// Servidor Principal Unificado V1
+// ====================
+// Servidor Principal Unificado
+// ====================
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -19,22 +20,28 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 
+// ====================
 //  Porta 3000 
+// ====================
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-
+// ====================
 // Middlewares
+// ====================
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-
+// ====================
+// 📁 Servir arquivos estáticos
+// ====================
 // Serve os arquivos .json (tipo GitHub Raw)
 app.use("/data", express.static(path.join(__dirname, "data")));
 // Serve os arquivos .lua (tipo GitHub Raw)
 app.use("/lua", express.static(path.join(__dirname, "lua")));
 // Serve HTML, CSS, JS da pasta "public"
 app.use(express.static(path.join(__dirname, "public")));
+
 
 
 // Caminhos para os caches locais
@@ -49,10 +56,14 @@ if (!fs.existsSync(dataDir)) {
 }
 
 
-// Cache em memória para reduzir leituras no Firestore
+// ====================
+// 🔸 Cache em memória para reduzir leituras no Firestore
+// ====================
 
 // verificar 
 const isReadOnly = process.env.VERCEL || process.env.AWS_REGION || process.env.NODE_ENV === "production";
+
+
 
 // Ler cache local (somente local)
 function readLocalCache(file) {
@@ -139,7 +150,10 @@ function createDataRoute(endpoint, cacheKey, localFile, firestoreCollection) {
 }
 
 
+// ====================
 // API: Gerenciar Jogadores
+// ====================
+
 
 // Função auxiliar para buscar jogador por ID
 async function getPlayerById(id) {
@@ -285,6 +299,11 @@ app.get("/api/player/:id", async (req, res) => {
 });
 
 
+
+// ====================
+//  API: Gerenciar IDs de músicas (Firebase)
+// ====================
+
 //  API: Gerenciar IDs de músicas (Firebase) — VERSÃO ATUALIZADA
 app.post("/api/musics_obj", async (req, res) => {
   const Name = req.body.Name || req.body.name;
@@ -365,6 +384,7 @@ function convertToLua(musics) {
 }
 
 
+
 // Adicionar um novo ID
 app.post("/api/musics", async (req, res) => {
   const id = req.body.id || req.body.texto;
@@ -389,6 +409,8 @@ app.post("/api/musics", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
 
 
 // Criar rotas automáticas de leitura
