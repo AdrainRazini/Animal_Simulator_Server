@@ -13,7 +13,7 @@ import { collection, getDocs, addDoc, updateDoc} from "firebase/firestore";
 import { db } from "./firebase.js";
 
 // Coleção de Memoria
-import { memoryCache, CACHE_TTL} from "./fileCache/Cache.js"; // Memoria Iportada
+import { memoryCache, CACHE_TTL, clearAllCache, GetKeyDt, DelKeyDt, UpdKeyDt } from "./fileCache/Cache.js"; // Memoria Iportada
 
 // Corrigir __dirname em ES Modules
 const __filename = fileURLToPath(import.meta.url);
@@ -60,8 +60,10 @@ if (!fs.existsSync(dataDir)) {
 // 🔸 Cache em memória para reduzir leituras no Firestore
 // ====================
 
-
+// verificar 
 const isReadOnly = process.env.VERCEL || process.env.AWS_REGION || process.env.NODE_ENV === "production";
+
+
 
 // Ler cache local (somente local)
 function readLocalCache(file) {
@@ -422,14 +424,8 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-
-// ====================
-// Inicialização Híbrida (Local + Vercel)
-// ====================
-
 // Detecta se está rodando em ambiente Serverless (Vercel, AWS, etc)
 const isServerless = process.env.VERCEL || process.env.AWS_REGION;
-
 // Se for ambiente local → inicia com app.listen()
 // Se for ambiente serverless → exporta app (sem escutar porta)
 if (!isServerless) {
