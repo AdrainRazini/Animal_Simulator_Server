@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>404 - Página não encontrada</title>
+  <link rel="shortcut icon" href="img/ADN_Red.png" type="image/x-icon">
+ <style>
+
+  :root {
+    --font-family: 'Segoe UI', sans-serif;
+
+    /* Cores */
+    --color-bg: #ffffff;
+    --color-text: #111827;
+    --color-purple: #6c5ce7;
+    --color-purple-hover: #5a3c9f;
+
+ 
+    --card-bg-color: #fff;
+    --card-border-color: #ddd;
+    --card-padding: 1rem;
+    --card-border-radius: 0.5rem;
+
+  
+    --max-width: 900px;
+    --radius: 14px;
+    --radius-large: 18px;
+    --shadow: 0 4px 15px rgba(0,0,0,0.15);
+
+    --gradient-neon: linear-gradient(135deg, #6a11cb, #2575fc);
+  }
+
+  body {
+    background: var(--gradient-neon);
+    font-family: var(--font-family);
+    color: var(--color-text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 2rem;
+    text-align: center;
+  }
+
+
+  h1 {
+    font-size: 5rem;
+    color: var(--color-purple);
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+  }
+
+  a.button {
+    background-color: var(--color-purple);
+    color: #fff;
+    padding: 0.8rem 1.6rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: inline-block;
+  }
+
+  a.button:hover {
+    background-color: var(--color-purple-hover);
+    transform: translateY(-2px);
+  }
+
+
+  #dashboard {
+    display: block;
+    background: var(--color-bg);
+    padding: 40px 32px;
+    border-radius: var(--radius-large);
+    width: min(420px, 94%);
+    text-align: center;
+    box-shadow: var(--shadow);
+    animation: fadeIn .4s ease;
+  }
+
+  #dashboard h2 {
+    color: var(--color-purple);
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+
+
+</head>
+<body>
+
+    
+
+  <div id="dashboard">
+  <h1>404</h1>
+  <p>Oops! A página que você tentou acessar não existe ou foi movida.</p>
+  <a href="index.html" class="button">Voltar para o início</a>
+  </div>
+
+</body>
+</html>
