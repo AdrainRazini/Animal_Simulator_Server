@@ -3299,7 +3299,13 @@ if success and response then
 	if ok then
 		print("✅ API de tradução carregada com sucesso!")
 		-- Exemplo: usar a função interna
-		Translate_Api.AutoTranslate(PlayerGui:FindFirstChild(GuiName), "All")
+		--Translate_Api.AutoTranslate(PlayerGui:FindFirstChild(GuiName), "All")
+		Regui.Notifications(PlayerGui, {
+			Title = "Internal Error",
+			Text = "WITHOUT AUTO Translate",
+			Icon = "fa_rr_information",
+			Tempo = 10
+		})
 	else
 		warn("⚠️ Erro ao executar código retornado:", Translate_Api)
 	end
