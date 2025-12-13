@@ -33,7 +33,7 @@ function Translator.TranslateText(text)
         .. targetLang
         .. "&dt=t&q="
         .. HttpService:UrlEncode(text)
-
+-- Erro Interno quebra da Hud 
     local response = requestFunction({
         Url = url,
         Method = "GET",

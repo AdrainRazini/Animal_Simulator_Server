@@ -3288,7 +3288,7 @@ end)
 
 
 local success, response = pcall(function()
-	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/Translate.lua")
+	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/TranslateV2.lua")
 end)
 
 if success and response then
@@ -3300,12 +3300,17 @@ if success and response then
 		print("✅ API de tradução carregada com sucesso!")
 		-- Exemplo: usar a função interna
 		Translate_Api.AutoTranslate(PlayerGui:FindFirstChild(GuiName), "All")
-
+--[[
+		Regui.Notifications(PlayerGui, {
+			Title = "Internal Error",
+			Text = "WITHOUT AUTO Translate",
+			Icon = "fa_rr_information",
+			Tempo = 10
+		})
+]]
 	else
 		warn("⚠️ Erro ao executar código retornado:", Translate_Api)
 	end
 else
 	warn("❌ Falha ao baixar API de tradução:", response)
 end
-
--- Codigo V4
