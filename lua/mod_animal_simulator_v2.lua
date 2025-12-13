@@ -3318,7 +3318,12 @@ if success and response then
 
 	if ok then
 		print("✅ API de tradução carregada com sucesso!")
-
+	Regui.Notifications(PlayerGui, {
+		Title = "Alert",
+		Text = "✅ Auto Translate_Api",
+		Icon = "fa_rr_information",
+		Tempo = 5
+	})
 		local gui = PlayerGui:FindFirstChild(GuiName)
 		if gui then
 			Translate_Api.AutoTranslate(gui, "All")
