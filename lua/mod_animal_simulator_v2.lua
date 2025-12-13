@@ -3307,3 +3307,5 @@ if success and response then
 else
 	warn("❌ Falha ao baixar API de tradução:", response)
 end
+
+-- Codigo V4
