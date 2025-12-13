@@ -3291,6 +3291,26 @@ local success, response = pcall(function()
 	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/TranslateV2.lua")
 end)
 
+local LOAD_DELAY = 0.5
+task.wait(LOAD_DELAY)
+
+local count = 0
+for _, child in ipairs(PlayerGui:GetChildren()) do
+	if child.Name == GuiName then
+		count += 1
+	end
+end
+
+if count > 1 then
+	Regui.Notifications(PlayerGui, {
+		Title = "Alert",
+		Text = "Neutralized Code (duplicated GUI detected)",
+		Icon = "fa_rr_information",
+		Tempo = 10
+	})
+	return
+end
+
 if success and response then
 	local ok, Translate_Api = pcall(function()
 		return loadstring(response)()
@@ -3298,16 +3318,11 @@ if success and response then
 
 	if ok then
 		print("✅ API de tradução carregada com sucesso!")
-		-- Exemplo: usar a função interna
-		Translate_Api.AutoTranslate(PlayerGui:FindFirstChild(GuiName), "All")
---[[
-		Regui.Notifications(PlayerGui, {
-			Title = "Internal Error",
-			Text = "WITHOUT AUTO Translate",
-			Icon = "fa_rr_information",
-			Tempo = 10
-		})
-]]
+
+		local gui = PlayerGui:FindFirstChild(GuiName)
+		if gui then
+			Translate_Api.AutoTranslate(gui, "All")
+		end
 	else
 		warn("⚠️ Erro ao executar código retornado:", Translate_Api)
 	end
