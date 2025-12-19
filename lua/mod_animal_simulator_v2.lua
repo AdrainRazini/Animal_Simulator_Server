@@ -3286,14 +3286,14 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 	end
 end)
 
-
+-- API de Tradução
 local success, response = pcall(function()
 	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/TranslateV2.lua")
 end)
-
+-- Espera de Duplicatas
 local LOAD_DELAY = 0.5
 task.wait(LOAD_DELAY)
-
+-- Contagem de Janelas
 local count = 0
 for _, child in ipairs(PlayerGui:GetChildren()) do
 	if child.Name == GuiName then
