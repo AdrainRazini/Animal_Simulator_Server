@@ -38,7 +38,15 @@ app.use(express.json());
 // Serve os arquivos .json (tipo GitHub Raw)
 app.use("/data", express.static(path.join(__dirname, "data")));
 // Serve os arquivos .lua (tipo GitHub Raw)
-app.use("/lua", express.static(path.join(__dirname, "lua")));
+app.use("/lua", express.static("lua", {
+  setHeaders(res) {
+    res.setHeader(
+      "Cache-Control",
+      "public, max-age=604800, immutable"
+    );
+  }
+}));
+
 // Serve HTML, CSS, JS da pasta "public"
 app.use(express.static(path.join(__dirname, "public")));
 
