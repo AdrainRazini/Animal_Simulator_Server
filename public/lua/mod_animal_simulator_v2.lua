@@ -22,6 +22,27 @@ local ModInfo = {
 	Notes = "Nil"
 }
 
+
+local genv = (getgenv and getgenv()) or _G
+
+genv.__MODS__ = genv.__MODS__ or {}
+genv.__MODS__.Animal_Simulator = genv.__MODS__.Animal_Simulator or {
+	Loaded = false,
+	Version = ModInfo.Version,
+	Cache = {}
+}
+
+local MOD = genv.__MODS__.Animal_Simulator
+
+-- evita double inject
+if MOD.Loaded then
+	warn("[⚠️ Mod Loader] The Apocalypse já está carregado")
+	return
+end
+
+
+
+
 -- ==========================================
 -- Animal Simulator :)
 -- ==========================================
@@ -86,11 +107,15 @@ end
 assert(Regui, "Regui não foi carregado!")
 
 
+-- erro de gui 
+task.wait(1)
 
 if PlayerGui:FindFirstChild(GuiName) then
 	Regui.Notifications(PlayerGui, {Title="Alert", Text="Neutralized Code", Icon="fa_rr_information", Tempo=10})
 	return
 end
+
+
 
 -- teste de Api Das Tags
 -- 🔹 Função para buscar jogador na API com fallback e tratamento de erro
@@ -184,10 +209,8 @@ if tag == "Banido" then
 	return -- ❌ interrompe aqui
 else
 
-
 	-- Continua normalmente para qualquer outro caso
 	print("Status da conta:", tag)
-
 
 end
 
@@ -3285,7 +3308,6 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 
 	end
 end)
-
 
 -- API de Tradução
 local success, response = pcall(function()
