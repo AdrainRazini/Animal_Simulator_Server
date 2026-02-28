@@ -36,7 +36,7 @@ local MOD = genv.__MODS__.Animal_Simulator
 
 -- evita double inject
 if MOD.Loaded then
-	warn("[⚠️ Mod Loader] The Apocalypse já está carregado")
+	warn("[⚠️ Mod Loader] Animal Simulator já está carregado")
 	return
 end
 
@@ -3309,6 +3309,7 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 	end
 end)
 
+--[[
 -- API de Tradução
 local success, response = pcall(function()
 	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/TranslateV2.lua")
@@ -3357,3 +3358,4 @@ if success and response then
 else
 	warn("❌ Falha ao baixar API de tradução:", response)
 end
+]]
