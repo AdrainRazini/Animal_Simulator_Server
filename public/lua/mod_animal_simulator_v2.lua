@@ -40,9 +40,6 @@ if MOD.Loaded then
 	return
 end
 
-
-
-
 -- ==========================================
 -- Animal Simulator :)
 -- ==========================================
@@ -105,17 +102,6 @@ else
 end
 
 assert(Regui, "Regui não foi carregado!")
-
-
--- erro de gui 
-task.wait(1)
-
-if PlayerGui:FindFirstChild(GuiName) then
-	Regui.Notifications(PlayerGui, {Title="Alert", Text="Neutralized Code", Icon="fa_rr_information", Tempo=10})
-	return
-end
-
-
 
 -- teste de Api Das Tags
 -- 🔹 Função para buscar jogador na API com fallback e tratamento de erro
@@ -879,20 +865,30 @@ end
 -- ⬇ ⬇ ⬇ ⬇ ⬇ ⬇ ⬇ ⬇
 --===================--
 -- GUI
-Window = Regui.TabsWindow({Title=GuiName, Text="Animal Simulator", Size=UDim2.new(0, 350, 0, 250), Icon_btn = true})
-FarmTab = Regui.CreateTab(Window,{Name="Farm"})
-PlayerTab = Regui.CreateTab(Window,{Name="PVP Player"})
-ToolsTab = Regui.CreateTab(Window,{Name="Tools"})
-GameTab = Regui.CreateTab(Window,{Name="Game"})
-MusicTab = Regui.CreateTab(Window,{Name="Music Player"})
-AfkTab = Regui.CreateTab(Window,{Name="Afk Mod"})
-ConfigsTab = Regui.CreateTab(Window,{Name="Configs"})
-ReadmeTab = Regui.CreateTab(Window,{Name="Readme"})
-ExplorerTab = Regui.CreateTab(Window,{Name="Explorer"})
+
+-- Verificar se já existe a GUI
+if PlayerGui:FindFirstChild(GuiName) then
+	Regui.Notifications(PlayerGui, {Title="Alert", Text="Neutralized Code", Icon="fa_rr_information", Tempo=10})
+	return
+end
+
+-- Criar Janelas
+if not PlayerGui:FindFirstChild(GuiName) then
+	Window = Regui.TabsWindow({Title=GuiName, Text="Animal Simulator", Size=UDim2.new(0, 350, 0, 250), Icon_btn = true})
+	FarmTab = Regui.CreateTab(Window,{Name="Farm"})
+	PlayerTab = Regui.CreateTab(Window,{Name="PVP Player"})
+	ToolsTab = Regui.CreateTab(Window,{Name="Tools"})
+	GameTab = Regui.CreateTab(Window,{Name="Game"})
+	MusicTab = Regui.CreateTab(Window,{Name="Music Player"})
+	AfkTab = Regui.CreateTab(Window,{Name="Afk Mod"})
+	ConfigsTab = Regui.CreateTab(Window,{Name="Configs"})
+	ReadmeTab = Regui.CreateTab(Window,{Name="Readme"})
+	ExplorerTab = Regui.CreateTab(Window,{Name="Explorer"})
+	-- Especial Tab
+	Credits = Regui.CreditsUi(ReadmeTab, { Alignment = "Center", Alignment_Texts = "Left"}, function() end)
+end
 
 
--- Especial Tab
-local Credits = Regui.CreditsUi(ReadmeTab, { Alignment = "Center", Alignment_Texts = "Left"}, function() end)
 --===================--
 --[[
 Loading_Logo = Instance.new("VideoFrame")
@@ -3309,7 +3305,6 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 	end
 end)
 
---[[
 -- API de Tradução
 local success, response = pcall(function()
 	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/TranslateV2.lua")
@@ -3358,4 +3353,3 @@ if success and response then
 else
 	warn("❌ Falha ao baixar API de tradução:", response)
 end
-]]
