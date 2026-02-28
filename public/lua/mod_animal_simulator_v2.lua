@@ -1,3 +1,5 @@
+task.wait(5)
+-- tempo de esperar 5 s teste 
 -- ==========================================
 -- MastermodV2: Verific Game
 -- ==========================================
@@ -20,7 +22,6 @@ local ModInfo = {
 	Date = "2025-09-23",
 	Notes = "Nil"
 }
-
 
 -- ==========================================
 -- Animal Simulator :)
@@ -3286,6 +3287,7 @@ Btn_Open_Discord = Regui.CreateButton(DiscordTab, {
 	end
 end)
 
+
 -- API de Tradução
 local success, response = pcall(function()
 	return game:HttpGet("https://animal-simulator-server.vercel.app/lua/TranslateV2.lua")
@@ -3318,12 +3320,12 @@ if success and response then
 
 	if ok then
 		print("✅ API de tradução carregada com sucesso!")
-	Regui.Notifications(PlayerGui, {
-		Title = "Alert",
-		Text = "✅ Auto Translate_Api",
-		Icon = "fa_rr_information",
-		Tempo = 5
-	})
+		Regui.Notifications(PlayerGui, {
+			Title = "Alert",
+			Text = "✅ Auto Translate_Api",
+			Icon = "fa_rr_information",
+			Tempo = 5
+		})
 		local gui = PlayerGui:FindFirstChild(GuiName)
 		if gui then
 			Translate_Api.AutoTranslate(gui, "All")
