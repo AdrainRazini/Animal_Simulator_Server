@@ -382,7 +382,7 @@ end
 
 --===================================================--
 
--- AUTO FARM
+-- AUTO FARM -- (Monitorar)
 local function autoCoins()
 	task.spawn(function()
 		while AF.coins do
