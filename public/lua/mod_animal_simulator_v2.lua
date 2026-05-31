@@ -388,14 +388,15 @@ local function autoCoins()
 		while AF.coins do
 			local events = ReplicatedStorage:FindFirstChild("Events")
 			local coinEvent = events and events:FindFirstChild("CoinEvent")
-			if coinEvent then coinEvent:FireServer() end
+
+			if coinEvent then coinEvent:FireServer() end -- (Evento Coins)
+
 			task.wait(AF_Timer.Coins_Speed)
 		end
 	end)
 end
 
 -- PVP + Dummy
-
 
 -- Controle Indexs separado para cada pasta
 local tpIndexes = {
@@ -420,30 +421,51 @@ local function getTarget(folder, mode)
 	end
 end
 
+
+-- Monitorar (Auto Dummy)
 local function attackLoop(flag, folder)
 	task.spawn(function()
 		while AF[flag] do
 			local dummy, hum = getTarget(folder, ModtpDummy)
 			if dummy and hum and dummy:FindFirstChild("HumanoidRootPart") then
 				local pos = dummy.HumanoidRootPart.Position
+             task.spawn(
+	            task.wait(0.1)
+	            -- Posivel Ban 3 Events enviados
 				attackRemote:FireServer(hum, 2)
+				task.wait(0.1)
 				skillsRemote:FireServer(pos, "NewFireball")
+				task.wait(0.1)
 				skillsRemote:FireServer(pos, "NewLightningball")
+				task.wait(0.1)
+               )
 			end
 			task.wait(AF_Timer.Dummies_Speed)
 		end
 	end)
 end
 
+-- Auto Dummy com Teleport 
 local function attackLoopTp(flag, folder)
 	task.spawn(function()
 		while AF[flag] do
 			local dummy, hum = getTarget(folder, ModtpDummy)
 			if dummy and hum and dummy:FindFirstChild("HumanoidRootPart") then
 				local pos = dummy.HumanoidRootPart.Position
-				attackRemote:FireServer(hum, 2)
+				--[[attackRemote:FireServer(hum, 2)
 				skillsRemote:FireServer(pos, "NewFireball")
+				skillsRemote:FireServer(pos, "NewLightningball")]]
+			 task.spawn(
+	            task.wait(0.1)
+	            -- Posivel Ban 3 Events enviados
+				attackRemote:FireServer(hum, 2)
+				task.wait(0.1)
+				skillsRemote:FireServer(pos, "NewFireball")
+				task.wait(0.1)
 				skillsRemote:FireServer(pos, "NewLightningball")
+				task.wait(0.1)
+               )
+
 			end
 			task.wait(AF_Timer.DummiesTp_Speed)
 		end
@@ -1290,13 +1312,13 @@ local Label_Farme_AF = Regui.CreateLabel(FarmTab, {Text = "Farme", Color = "Whit
 -- Exemplo de Toggle
 local ToggleCoins = Regui.CreateToggleboxe(FarmTab,{Text="Auto Coins",Color="Yellow"},function(state)
 	AF.coins=state
-	if AF.coins then autoCoins() end
+	if AF.coins then autoCoins() end -- fn() 
 end)
 
 
 
-
-local SliderFloat_Coins = Regui.CreateSliderFloat(FarmTab, {Text = "Timer Auto Coins", Color = "Yellow", Value = 0.1, Minimum = 0, Maximum = 1}, function(state)
+-- Limitar Auto Coins
+local SliderFloat_Coins = Regui.CreateSliderFloat(FarmTab, {Text = "Timer Auto Coins", Color = "Yellow", Value = 0.1, Minimum = 0.5, Maximum = 1}, function(state)
 	AF_Timer.Coins_Speed = state
 	print("Slider Float clicada! Estado:", AF_Timer.Coins_Speed)
 
@@ -1316,9 +1338,7 @@ local selectorFrame = Regui.CreateSelectorOpitions(FarmTab, {
 	selectedBoss = val
 end)
 
-
-
-
+-- Auto Boos Hits
 local Label_Seletor_Info = Regui.CreateLabel(FarmTab, {Text = "Ativar Farm", Color = "White", Alignment = "Center"})
 -- Toggle de Auto Boss
 local ToggleBosses = Regui.CreateToggleboxe(FarmTab, {Text="Auto Bosses", Color="Red"}, function(state)
@@ -1330,10 +1350,10 @@ local ToggleBosses = Regui.CreateToggleboxe(FarmTab, {Text="Auto Bosses", Color=
 			if ModBoss == "Normal" then
 				farmBossesNormal()
 			else
-				farmBosses()
+				farmBosses() -- Todos
 			end
 		else
-			farmBossesFix()
+			farmBossesFix() -- Filtros
 		end
 
 	end
@@ -1427,7 +1447,7 @@ local SliderFloat_Boosses = Regui.CreateSliderFloat(FarmTab, {
 	Text = "Timer Bosses",
 	Color = "Blue",
 	Value = 0.1,
-	Minimum = 0,
+	Minimum = 0.25,
 	Maximum = 1
 }, function(state)
 	AF_Timer.Bosses_Speed = state
@@ -1436,10 +1456,9 @@ end)
 
 
 
-local SliderFloat_dummies = Regui.CreateSliderFloat(FarmTab, {Text = "Timer dummies", Color = "Blue", Value = 1, Minimum = 0, Maximum = 1}, function(state)
+local SliderFloat_dummies = Regui.CreateSliderFloat(FarmTab, {Text = "Timer dummies", Color = "Blue", Value = 1, Minimum = 0.5, Maximum = 1}, function(state)
 	AF_Timer.Dummies_Speed = state
 	print("Slider Float clicada! Estado:", AF_Timer.Dummies_Speed)
-
 end) 
 
 local Check_Farme_dummies = Regui.CreateCheckboxe(FarmTab, {Text = "Auto dummies", Color = "Blue"}, function(state)
@@ -1447,7 +1466,7 @@ local Check_Farme_dummies = Regui.CreateCheckboxe(FarmTab, {Text = "Auto dummies
 	--print("Checkbox clicada! Estado:", Test_.Button_Box)
 
 	if AF.dummies  then
-		attackLoop("dummies", dummiesFolder)
+		attackLoop("dummies", dummiesFolder) -- Farme Dummys
 		-- Notificação se for Verdadeiro
 		Regui.NotificationPerson(Window.Frame.Parent, {
 			Title = "Alert: Farme dummies",
