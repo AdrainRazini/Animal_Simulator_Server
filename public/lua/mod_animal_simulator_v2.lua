@@ -256,7 +256,6 @@ local Listaid = GetFromAPI(Json_Url_Musics)
 local listMusics = {}
 
 
-
 -- REMOTES
 local attackRemote = ReplicatedStorage:WaitForChild("jdskhfsIIIllliiIIIdchgdIiIIIlIlIli")
 local skillsRemote = ReplicatedStorage:WaitForChild("SkillsInRS"):WaitForChild("RemoteEvent")
@@ -287,12 +286,10 @@ if not folder5k then
 end
 
 
-
-
-
+-- Bosses Map
 local bossesList = {"Griffin","BOSSBEAR","BOSSDEER","CENTAUR","CRABBOSS","DragonGiraffe","LavaGorilla","BOSSDINO" }
--- Valor selecionado no selector
 
+-- Valor selecionado no selector
 local selectedBoss = "All" -- padrão: todos
 
 local ModtpDummy = "Foco"
