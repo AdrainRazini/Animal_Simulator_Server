@@ -426,16 +426,8 @@ local function attackLoop(flag, folder)
 			local dummy, hum = getTarget(folder, ModtpDummy)
 			if dummy and hum and dummy:FindFirstChild("HumanoidRootPart") then
 				local pos = dummy.HumanoidRootPart.Position
-             task.spawn(
-	            task.wait(0.1)
-	            -- Posivel Ban 3 Events enviados
-				attackRemote:FireServer(hum, 2)
-				task.wait(0.1)
+             	attackRemote:FireServer(hum, 2)
 				skillsRemote:FireServer(pos, "NewFireball")
-				task.wait(0.1)
-				skillsRemote:FireServer(pos, "NewLightningball")
-				task.wait(0.1)
-               )
 			end
 			task.wait(AF_Timer.Dummies_Speed)
 		end
@@ -452,17 +444,8 @@ local function attackLoopTp(flag, folder)
 				--[[attackRemote:FireServer(hum, 2)
 				skillsRemote:FireServer(pos, "NewFireball")
 				skillsRemote:FireServer(pos, "NewLightningball")]]
-			 task.spawn(
-	            task.wait(0.1)
-	            -- Posivel Ban 3 Events enviados
 				attackRemote:FireServer(hum, 2)
-				task.wait(0.1)
 				skillsRemote:FireServer(pos, "NewFireball")
-				task.wait(0.1)
-				skillsRemote:FireServer(pos, "NewLightningball")
-				task.wait(0.1)
-               )
-
 			end
 			task.wait(AF_Timer.DummiesTp_Speed)
 		end
